@@ -1,4 +1,4 @@
-import { isObject, hasChanged } from './utils'
+import { isObject, hasChanged, isArray } from './utils'
 import { track, trigger } from './effect'
 
 const proxyMap = new WeakMap()
@@ -16,11 +16,17 @@ export function reactive(target) {
       return isObject(res) ? reactive(res) : res
     },
     set(target, key, value, receiver) {
+      let oldLength = target.length
       const oldValue = target[key]
       const res = Reflect.set(target, key, value, receiver)
       if (hasChanged(oldValue, value)) {
         // 触发更新
         trigger(target, key)
+        // 针对数组长度暂时这样处理
+        // TODO 根据 RefLect 判断
+        if (isArray(target) && hasChanged(oldLength, value.length)) {
+          trigger(target, 'length')
+        }
       }
       return res
     },
