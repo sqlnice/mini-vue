@@ -1,2 +1,5 @@
-const a = 6
-console.log(a)
+import { reactive, effect } from './reactivity/index.js'
+export default MiniVue = {
+  reactive,
+  effect,
+}
