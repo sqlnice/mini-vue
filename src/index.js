@@ -1,5 +1,6 @@
-import { reactive, effect } from './reactivity/index.js'
+import { reactive, effect, ref } from './reactivity/index.js'
 export default MiniVue = {
   reactive,
   effect,
+  ref,
 }
