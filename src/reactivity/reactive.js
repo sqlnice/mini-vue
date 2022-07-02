@@ -13,7 +13,7 @@ export function reactive(target) {
       const res = Reflect.get(target, key, receiver)
       // 依赖依赖
       track(target, key)
-      return res
+      return isObject(res) ? reactive(res) : res
     },
     set(target, key, value, receiver) {
       const oldValue = target[key]
