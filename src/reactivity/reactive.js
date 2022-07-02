@@ -1,9 +1,13 @@
 import { isObject } from './utils'
 import { track, trigger } from './effect'
+
 export function reactive(target) {
   if (!isObject(target)) return target
+  if (isReactive(target)) return target
+
   const proxy = new Proxy(target, {
     get(target, key, receiver) {
+      if (key === '__isReactive') return true
       // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
       const res = Reflect.get(target, key, receiver)
       // 依赖依赖
@@ -18,4 +22,7 @@ export function reactive(target) {
     },
   })
   return proxy
+}
+export function isReactive(target) {
+  return !!(target && target.__isReactive)
 }
