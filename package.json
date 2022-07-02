@@ -1,0 +1,26 @@
+{
+  "name": "mini-vue",
+  "version": "1.0.0",
+  "description": "逐渐实现 Vue.js 大部分功能",
+  "main": "index.js",
+  "scripts": {
+    "dev": "rollup -c scripts/rollup.config.dev.js --watch",
+    "build": "rollup -c scripts/rollup.config.port.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqlnice/mini-vue.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sqlnice/mini-vue/issues"
+  },
+  "homepage": "https://github.com/sqlnice/mini-vue#readme",
+  "devDependencies": {
+    "rollup": "^2.75.7",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-serve": "^2.0.0"
+  }
+}
