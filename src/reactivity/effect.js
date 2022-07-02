@@ -1,20 +1,29 @@
+let activeEffect
 const effectStack = []
+// effectStack 先进后出，解决 effect 嵌套问题
 // ---------
 // |       |
 // | inner |
 // | out   |
 // |       |
 // ---------
-let activeEffect
-export function effect(fn) {
-  try {
-    activeEffect = fn
-    effectStack.push(activeEffect)
-    return fn()
-  } finally {
-    effectStack.pop()
-    activeEffect = effectStack[effectStack.length - 1]
+export function effect(fn, options = {}) {
+  const effectFn = () => {
+    try {
+      effectStack.push(effectFn)
+      activeEffect = effectFn
+      return fn()
+    } finally {
+      effectStack.pop()
+      activeEffect = effectStack[effectStack.length - 1]
+    }
   }
+  // computed { lazy }
+  if (!options.lazy) {
+    effectFn()
+  }
+  effectFn.scheduler = options.scheduler
+  return effectFn
 }
 
 const targetMap = new WeakMap()
@@ -44,6 +53,11 @@ export function trigger(target, key) {
   const deps = depsMap.get(key)
   if (!deps) return
   deps.forEach(effectFn => {
-    effectFn()
+    if (effectFn.scheduler) {
+      // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
+      effectFn.scheduler(effectFn)
+    } else {
+      effectFn()
+    }
   })
 }

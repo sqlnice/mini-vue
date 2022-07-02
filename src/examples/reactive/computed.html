@@ -5,17 +5,26 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <script src="../../dist/mini-vue.js" type="module"></script>
+    <script src="../../../dist/mini-vue.js"></script>
   </head>
 
   <body>
     <script>
-      const { reactive, watchEffect: effect, ref, computed } = MiniVue
+      const { ref, computed } = MiniVue
 
       const num = ref(0)
       const c = computed(() => {
         console.log('calculate c.value')
         return num.value * 2
+      })
+      const d = computed({
+        get() {
+          console.log('calculate c.value')
+          return num.value * 2
+        },
+        set(newValue) {
+          num.value = newValue
+        },
       })
     </script>
   </body>

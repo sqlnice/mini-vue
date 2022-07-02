@@ -9,3 +9,7 @@ export function hasChanged(oldValue, newValue) {
 export function isArray(target) {
   return Array.isArray(target)
 }
+
+export function isFunction(target) {
+  return typeof target === 'function'
+}

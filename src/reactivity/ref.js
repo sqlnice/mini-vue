@@ -4,10 +4,10 @@ import { hasChanged, isObject } from './utils'
 
 export function ref(value) {
   if (isRef(value)) return value
-  return new RefImp(value)
+  return new RefImpl(value)
 }
 
-class RefImp {
+class RefImpl {
   constructor(value) {
     this.__isRef = true
     this._value = convert(value)

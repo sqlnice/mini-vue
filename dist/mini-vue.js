@@ -15,23 +15,36 @@ var MiniVue = (function () {
     return Array.isArray(target)
   }
 
+  function isFunction(target) {
+    return typeof target === 'function'
+  }
+
+  let activeEffect;
   const effectStack = [];
+  // effectStack 先进后出，解决 effect 嵌套问题
   // ---------
   // |       |
   // | inner |
   // | out   |
   // |       |
   // ---------
-  let activeEffect;
-  function effect(fn) {
-    try {
-      activeEffect = fn;
-      effectStack.push(activeEffect);
-      return fn()
-    } finally {
-      effectStack.pop();
-      activeEffect = effectStack[effectStack.length - 1];
+  function effect(fn, options = {}) {
+    const effectFn = () => {
+      try {
+        effectStack.push(effectFn);
+        activeEffect = effectFn;
+        return fn()
+      } finally {
+        effectStack.pop();
+        activeEffect = effectStack[effectStack.length - 1];
+      }
+    };
+    // computed { lazy }
+    if (!options.lazy) {
+      effectFn();
     }
+    effectFn.scheduler = options.scheduler;
+    return effectFn
   }
 
   const targetMap = new WeakMap();
@@ -61,7 +74,12 @@ var MiniVue = (function () {
     const deps = depsMap.get(key);
     if (!deps) return
     deps.forEach(effectFn => {
-      effectFn();
+      if (effectFn.scheduler) {
+        // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
+        effectFn.scheduler(effectFn);
+      } else {
+        effectFn();
+      }
     });
   }
 
@@ -104,10 +122,10 @@ var MiniVue = (function () {
 
   function ref(value) {
     if (isRef(value)) return value
-    return new RefImp(value)
+    return new RefImpl(value)
   }
 
-  class RefImp {
+  class RefImpl {
     constructor(value) {
       this.__isRef = true;
       this._value = convert(value);
@@ -134,10 +152,58 @@ var MiniVue = (function () {
     return !!value.__isRef
   }
 
+  function computed(getterOrOption) {
+    let getter,
+      setter = () => {
+        console.warn('computed is readonly');
+      };
+    if (isFunction(getterOrOption)) {
+      getter = getterOrOption;
+    } else {
+      getter = getterOrOption.get;
+      setter = getterOrOption.set;
+    }
+    return new ComputedImpl(getter, setter)
+  }
+
+  class ComputedImpl {
+    constructor(getter, setter) {
+      this.setter = setter;
+      this._value = undefined;
+      this._dirty = true; // 是否改变
+      this.effect = effect(getter, {
+        lazy: true, // 懒计算
+        scheduler: () => {
+          // computed 里面依赖的响应式对象变化时，才执行此方法
+          if (!this._dirty) {
+            this._dirty = true;
+            // 触发更新
+            trigger(this, 'value');
+          }
+        },
+      });
+    }
+
+    get value() {
+      if (this._dirty) {
+        this._value = this.effect();
+        this._dirty = false;
+        track(this, 'value');
+        // 依赖收集
+      }
+      return this._value
+    }
+
+    set value(newValue) {
+      this.setter(newValue);
+    }
+  }
+
   var index = MiniVue = {
     reactive,
     effect,
     ref,
+    computed,
   };
 
   return index;
