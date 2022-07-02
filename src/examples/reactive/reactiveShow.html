@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <script src="../../../dist/mini-vue.js"></script>
+    <script>
+      const { reactive, effect } = MiniVue
+      const obj = {
+        count: 0,
+      }
+      // 普通
+      // const observed = reactive(obj)
+      // effect(() => {
+      //   console.log('observed.count is:', observed.count)
+      // })
+
+      // reactive(reactive(obj))
+      // const observed2 = reactive(reactive({ count: 0 }))
+      // effect(() => {
+      //   console.log('observed.count is:', observed2.count)
+      // })
+
+      // let a = reactive(obj), b = reactive(obj)
+      // 会代理两次 obj
+
+      // let a = reactive(obj),
+      //   b = reactive(obj)
+
+      // hasChanged
+      // const observed = reactive(obj)
+      // effect(() => {
+      //   console.log('observed.count is:', observed.count)
+      // })
+
+      // 深层对象代理
+      // const observed = reactive({
+      //   city: '苏州',
+      //   student: {
+      //     name: 'sql',
+      //   },
+      // })
+      // effect(() => {
+      //   console.log('城市变化:', observed.city)
+      //   console.log('学生名称变化:', observed.student.name)
+      // })
+
+      // 嵌套 effect
+      // activeEffect = out
+      //    activeEffect = inner
+      // const observed = reactive({
+      //   count1: 0,
+      //   count2: 10,
+      // })
+
+      // effect(function out() {
+      //   effect(function inner() {
+      //     console.log('count2 is:', observed.count2)
+      //   })
+      //   console.log('count1 is:', observed.count1)
+      // })
+
+      // 数组
+
+      // const observed = reactive([1, 2, 3])
+      // effect(() => {
+      //   console.log('index 4 is:', observed[4])
+      // })
+      // effect(() => {
+      //   console.log('length is:', observed.length)
+      // })
+    </script>
+  </body>
+</html>

@@ -4,8 +4,18 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>reactive测试</title>
+    <title>Document</title>
     <script src="../../dist/mini-vue.js" type="module"></script>
   </head>
-  <body></body>
+
+  <body>
+    <script>
+      const { reactive, watchEffect: effect, ref, computed } = MiniVue
+
+      const foo = ref(1)
+      effect(() => {
+        console.log('foo: ', foo.value)
+      })
+    </script>
+  </body>
 </html>
