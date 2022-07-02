@@ -1,9 +1,20 @@
+const effectStack = []
+// ---------
+// |       |
+// | inner |
+// | out   |
+// |       |
+// ---------
 let activeEffect
-
 export function effect(fn) {
-  activeEffect = fn
-  fn()
-  return fn
+  try {
+    activeEffect = fn
+    effectStack.push(activeEffect)
+    return fn()
+  } finally {
+    effectStack.pop()
+    activeEffect = effectStack[effectStack.length - 1]
+  }
 }
 
 const targetMap = new WeakMap()
@@ -15,12 +26,12 @@ const targetMap = new WeakMap()
 // }
 export function track(target, key) {
   if (!activeEffect) return
-  const depsMap = targetMap.get(target)
+  let depsMap = targetMap.get(target)
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
   }
 
-  const deps = depsMap.get(key)
+  let deps = depsMap.get(key)
   if (!deps) {
     depsMap.set(key, (deps = new Set()))
   }
