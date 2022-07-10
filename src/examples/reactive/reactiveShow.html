@@ -10,7 +10,7 @@
   <body>
     <script src="../../../dist/mini-vue.js"></script>
     <script>
-      const { reactive, effect } = MiniVue
+      const { reactive, effect, jobQueue, flushJob } = MiniVue
       const obj = {
         count: 0,
       }
@@ -74,6 +74,17 @@
       // effect(() => {
       //   console.log('length is:', observed.length)
       // })
+
+      // 完善调度器 - 合并任务，多次同时间内的任务只执行最后一次
+      const observed = reactive(obj)
+      effect(() => console.log(observed.count), {
+        scheduler(fn) {
+          jobQueue.add(fn)
+          flushJob()
+        },
+      })
+      observed.count++
+      observed.count++
     </script>
   </body>
 </html>

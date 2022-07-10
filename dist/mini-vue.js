@@ -83,6 +83,27 @@ var MiniVue = (function () {
     });
   }
 
+  // 定义一个任务队列
+  const jobQueue = new Set();
+
+  // 使用 Promise.resolve() 创建一个 promise 实例，用它将一个任务添加到微任务队列
+  const p = Promise.resolve();
+
+  // 任务队列是否在执行
+  let isFlushing = false;
+
+  function flushJob() {
+    if (isFlushing) return
+    // 正在刷新
+    isFlushing = true;
+    p.then(() => {
+      jobQueue.forEach(job => job());
+    }).finally(() => {
+      // 刷新完毕
+      isFlushing = false;
+    });
+  }
+
   const proxyMap = new WeakMap();
   function reactive(target) {
     if (!isObject(target)) return target
@@ -204,6 +225,8 @@ var MiniVue = (function () {
     effect,
     ref,
     computed,
+    jobQueue,
+    flushJob,
   };
 
   return index;

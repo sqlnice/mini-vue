@@ -1,4 +1,4 @@
 export * from './reactive'
-export { effect } from './effect'
+export { effect, jobQueue, flushJob } from './effect'
 export * from './ref'
 export * from './computed'
