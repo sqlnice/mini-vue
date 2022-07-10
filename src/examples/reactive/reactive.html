@@ -10,7 +10,7 @@
 
   <body>
     <script>
-      const { reactive, effect, shallowReactive } = MiniVue
+      const { reactive, effect, shallowReactive, readonly, shallowReadonly } = MiniVue
       const obj = { count: 1 }
       // 普通
       // const observed = reactive(obj)
@@ -42,15 +42,36 @@
       // }, 3000)
 
       // 浅响应
-      const observed = shallowReactive({
+      // const observed = shallowReactive({
+      //   foo: {
+      //     bar: 1,
+      //   },
+      // })
+      // effect(() => {
+      //   console.log(observed.foo.bar)
+      // })
+      // observed.foo.bar = 2
+      // 深只读
+      const observed = readonly({
         foo: {
-          bar: 1,
+          bar: 2,
         },
       })
       effect(() => {
         console.log(observed.foo.bar)
       })
-      observed.foo.bar = 2
+      delete observed.foo.bar
+
+      // 浅只读
+      // const observed = shallowReactive({
+      //   foo: {
+      //     bar: 2,
+      //   },
+      // })
+      // effect(() => {
+      //   console.log(observed.foo.bar)
+      // })
+      // observed.foo.bar = 4
 
       // let a = reactive(obj), b = reactive(obj)
       // 会代理两次 obj

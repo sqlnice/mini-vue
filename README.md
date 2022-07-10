@@ -53,6 +53,8 @@
 - [x] 数组
 - [x] 劫持 key in obj 操作
 - [x] 使用 for...in 循环遍历对象 新增 key 用 ownKeys 拦截，修改 key 在 set 里做判断是设置还是添加
+- [x] 浅响应与深响应
+- [x] 只读与浅只读
 
 ### effect
 

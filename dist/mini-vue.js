@@ -154,7 +154,7 @@ var MiniVue = (function () {
    * @param {*} obj
    * @param {*} isShallow
    */
-  function createReactive(obj, isShallow = false) {
+  function createReactive(obj, isShallow = false, isReadonly = false) {
     if (!isObject(obj)) return obj
     if (isReactive(obj)) return obj
     if (proxyMap.has(obj)) return proxyMap.get(obj)
@@ -162,17 +162,29 @@ var MiniVue = (function () {
       get(target, key, receiver) {
         if (key === '__isReactive') return true
         if (key === 'raw') return target
+        // 在非只读时才建立响应联系
+        if (!isReadonly) {
+          // 依赖依赖
+          track(target, key);
+        }
+
         // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
         const res = Reflect.get(target, key, receiver);
+
         // 浅响应，直接返回值
         if (isShallow) {
           return res
         }
-        // 依赖依赖
-        track(target, key);
-        return isObject(res) ? reactive(res) : res
+        if (isObject(res)) {
+          return isReadonly ? readonly(res) : reactive(res)
+        }
+        return res
       },
       set(target, key, value, receiver) {
+        if (isReadonly) {
+          console.warn(`属性 ${key} 是只读的`);
+          return true
+        }
         const type = Object.prototype.hasOwnProperty.call(target, key) ? TriggerOpTypes.SET : TriggerOpTypes.ADD;
         let oldLength = target.length;
         const oldValue = target[key];
@@ -202,6 +214,10 @@ var MiniVue = (function () {
         return Reflect.ownKeys(target)
       },
       deleteProperty(target, key) {
+        if (isReadonly) {
+          console.warn(`属性 ${key} 是只读的`);
+          return true
+        }
         // 判断被操作的属性是否是对象自己的属性
         const hadKey = Object.prototype.hasOwnProperty.call(target, key);
         // 使用 Reflect 完成删除操作
@@ -221,8 +237,19 @@ var MiniVue = (function () {
     return createReactive(obj)
   }
 
+  /**
+   * 浅响应
+   */
   function shallowReactive(obj) {
     return createReactive(obj, true)
+  }
+
+  function readonly(obj) {
+    return createReactive(obj, false, true /* 只读 */)
+  }
+
+  function shallowReadonly(obj) {
+    return createReactive(obj, true, true /* 只读 */)
   }
 
   function isReactive(target) {
@@ -371,6 +398,8 @@ var MiniVue = (function () {
   var index = MiniVue = {
     reactive,
     shallowReactive,
+    readonly,
+    shallowReadonly,
     effect,
     ref,
     computed,
