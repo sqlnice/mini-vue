@@ -6,6 +6,30 @@ const proxyMap = new WeakMap()
 // 用于拦截 for...in 操作时，关联副作用函数
 export const ITERATE_KEY = Symbol()
 
+const arrayInstrumentations = {}
+;['includes', 'indexOf', 'lastIndexOf'].forEach(method => {
+  const originMethod = Array.prototype[method]
+  arrayInstrumentations[method] = function (...args) {
+    // 这里 this 指代理对象，先在代理对象中查找
+    let res = originMethod.apply(this, args)
+    if (res === false) {
+      // 再次通过 this.raw 拿到原始数组查找
+      res = originMethod.apply(this.raw, args)
+    }
+    return res
+  }
+})
+export let shouldTrack = true
+;['push', 'pop', 'shift', 'unshift', 'splice'].forEach(method => {
+  const originMethod = Array.prototype[method]
+  arrayInstrumentations[method] = function (...args) {
+    shouldTrack = false
+    let res = originMethod.apply(this, args)
+    shouldTrack = true
+    return res
+  }
+})
+
 /**
  * reactive 创建器
  * @param {*} obj
@@ -19,6 +43,10 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
     get(target, key, receiver) {
       if (key === '__isReactive') return true
       if (key === 'raw') return target
+      if (isArray(target) && arrayInstrumentations.hasOwnProperty(key)) {
+        return Reflect.get(arrayInstrumentations, key, receiver)
+      }
+
       // 在非只读时才建立响应联系
       // 数组调用 for...of 或者 values 方法时，都会读取数组的 Symbol.interator 属性，是一个 symbol 值，为避免意外及提升性能，不应与这类 symbol 值直接建立响应联系
       if (!isReadonly && typeof key !== 'symbol') {

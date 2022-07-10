@@ -18,11 +18,38 @@
       // })
       // observed[1] = 'bar'
       // 修改数组长度
-      const observed = reactive(['foo'])
+      // const observed = reactive(['foo'])
+      // effect(() => {
+      //   console.log(observed[0])
+      // })
+      // observed.length = 0
+
+      // 遍历数组
+      // const observed = reactive(['foo', 'bar'])
+      // effect(() => {
+      //   for (const iterator of observed) {
+      //     console.log(iterator)
+      //   }
+      //   for (const key in observed) {
+      //     console.log(key)
+      //   }
+      // })
+
+      // 数组的查找方法
+      // const obj = {}
+      // const observed = reactive([obj])
+      // console.log(observed.includes(observed[0]))
+      // // 重写 includes 方法
+      // console.log(observed.includes(obj))
+
+      // 隐式修改数组长度的原型方法
+      const observed = reactive([])
       effect(() => {
-        console.log(observed[0])
+        observed.push(1)
       })
-      observed.length = 0
+      effect(() => {
+        observed.push(1)
+      })
     </script>
   </body>
 </html>

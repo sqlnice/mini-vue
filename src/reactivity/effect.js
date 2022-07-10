@@ -1,5 +1,5 @@
 import { TriggerOpTypes } from './operations'
-import { ITERATE_KEY } from './reactive'
+import { ITERATE_KEY, shouldTrack } from './reactive'
 import { isArray } from './utils'
 
 let activeEffect
@@ -49,7 +49,7 @@ const targetMap = new WeakMap()
 //   }
 // }
 export function track(target, key) {
-  if (!activeEffect) return
+  if (!activeEffect || !shouldTrack) return
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
@@ -117,7 +117,7 @@ export function trigger(target, key, type, newValue) {
   }
 
   effectsToRun.forEach(effectFn => {
-    if (effectFn.options.scheduler) {
+    if (effectFn?.options?.scheduler) {
       // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
       effectFn.options.scheduler(effectFn)
     } else {
