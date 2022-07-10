@@ -220,7 +220,7 @@ var MiniVue = (function () {
     }
   }
 
-  function watch(source, cb) {
+  function watch(source, cb, options) {
     let getter;
     if (typeof source === 'function') {
       getter = source;
@@ -229,17 +229,24 @@ var MiniVue = (function () {
       getter = () => traverse(source);
     }
     let oldValue, newValue;
+
+    const job = () => {
+      // 数据变化时执行回调
+      newValue = effectFn();
+      cb(newValue, oldValue);
+      oldValue = newValue;
+    };
     const effectFn = effect(() => getter(), {
       lazy: true,
-      scheduler() {
-        // 数据变化时执行回调
-        newValue = effectFn();
-        cb(newValue, oldValue);
-        oldValue = newValue;
-      },
+      scheduler: job,
     });
-    // 先手动调用副作用函数
-    oldValue = effectFn();
+
+    if (options.immediate) {
+      job();
+    } else {
+      // 先手动调用副作用函数
+      oldValue = effectFn();
+    }
   }
 
   function traverse(value, seen = new Set()) {

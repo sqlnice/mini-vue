@@ -13,15 +13,21 @@
       const { reactive, watch } = MiniVue
 
       const observed = reactive({ count: 1 })
-
+      // 简单 watch
       // watch(observed, () => {
       //   console.log('数据变化')
       // })
 
-      watch(
-        () => observed.count,
-        (newValue, oldValue) => console.log('新值：', newValue, '旧值：', oldValue)
-      )
+      // 支持 getter
+      // watch(
+      //   () => observed.count,
+      //   (newValue, oldValue) => console.log('新值：', newValue, '旧值：', oldValue)
+      // )
+
+      // 立即执行
+      watch(observed, (newValue, oldValue) => console.log('新值：', newValue?.count, '旧值：', oldValue?.count), {
+        immediate: true,
+      })
     </script>
   </body>
 </html>
