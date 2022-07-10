@@ -4,16 +4,26 @@ import { TriggerOpTypes } from './operations'
 
 const proxyMap = new WeakMap()
 export const ITERATE_KEY = Symbol()
-export function reactive(target) {
-  if (!isObject(target)) return target
-  if (isReactive(target)) return target
-  if (proxyMap.has(target)) return proxyMap.get(target)
-  const proxy = new Proxy(target, {
+
+/**
+ * reactive 创建器
+ * @param {*} obj
+ * @param {*} isShallow
+ */
+function createReactive(obj, isShallow = false) {
+  if (!isObject(obj)) return obj
+  if (isReactive(obj)) return obj
+  if (proxyMap.has(obj)) return proxyMap.get(obj)
+  const proxy = new Proxy(obj, {
     get(target, key, receiver) {
       if (key === '__isReactive') return true
       if (key === 'raw') return target
       // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
       const res = Reflect.get(target, key, receiver)
+      // 浅响应，直接返回值
+      if (isShallow) {
+        return res
+      }
       // 依赖依赖
       track(target, key)
       return isObject(res) ? reactive(res) : res
@@ -59,9 +69,18 @@ export function reactive(target) {
       return res
     },
   })
-  proxyMap.set(target, proxy)
+  proxyMap.set(obj, proxy)
   return proxy
 }
+
+export function reactive(obj) {
+  return createReactive(obj)
+}
+
+export function shallowReactive(obj) {
+  return createReactive(obj, true)
+}
+
 export function isReactive(target) {
   return !!(target && target.__isReactive)
 }

@@ -10,7 +10,7 @@
 
   <body>
     <script>
-      const { reactive, effect } = MiniVue
+      const { reactive, effect, shallowReactive } = MiniVue
       const obj = { count: 1 }
       // 普通
       // const observed = reactive(obj)
@@ -25,22 +25,32 @@
       // })
 
       // 使用 for...in 循环遍历对象
+      // const observed = reactive(obj)
+      // effect(() => {
+      //   for (const key in observed) {
+      //     console.log(key)
+      //   }
+      // })
+      // setTimeout(() => {
+      //   observed.count = 2
+      // }, 1000)
+      // setTimeout(() => {
+      //   observed.foo = 2
+      // }, 2000)
+      // setTimeout(() => {
+      //   delete observed.count
+      // }, 3000)
 
-      const observed = reactive(obj)
-      effect(() => {
-        for (const key in observed) {
-          console.log(key)
-        }
+      // 浅响应
+      const observed = shallowReactive({
+        foo: {
+          bar: 1,
+        },
       })
-      setTimeout(() => {
-        observed.count = 2
-      }, 1000)
-      setTimeout(() => {
-        observed.foo = 2
-      }, 2000)
-      setTimeout(() => {
-        delete observed.count
-      }, 3000)
+      effect(() => {
+        console.log(observed.foo.bar)
+      })
+      observed.foo.bar = 2
 
       // let a = reactive(obj), b = reactive(obj)
       // 会代理两次 obj
