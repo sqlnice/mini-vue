@@ -11,6 +11,7 @@ export function reactive(target) {
   const proxy = new Proxy(target, {
     get(target, key, receiver) {
       if (key === '__isReactive') return true
+      if (key === 'raw') return target
       // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
       const res = Reflect.get(target, key, receiver)
       // 依赖依赖
@@ -22,13 +23,16 @@ export function reactive(target) {
       let oldLength = target.length
       const oldValue = target[key]
       const res = Reflect.set(target, key, value, receiver)
-      if (hasChanged(oldValue, value)) {
-        // 触发更新
-        trigger(target, key, type)
-        // 针对数组长度暂时这样处理
-        // TODO 根据 RefLect 判断
-        if (isArray(target) && hasChanged(oldLength, value.length)) {
-          trigger(target, 'length')
+      // 说明 receiver 就是 target 的代理对象
+      if (target === receiver.raw) {
+        if (hasChanged(oldValue, value)) {
+          // 触发更新
+          trigger(target, key, type)
+          // 针对数组长度暂时这样处理
+          // TODO 根据 RefLect 判断
+          if (isArray(target) && hasChanged(oldLength, value.length)) {
+            trigger(target, 'length')
+          }
         }
       }
       return res
