@@ -312,6 +312,46 @@ var MiniVue = (function () {
     return !!(target && target.__isReactive)
   }
 
+  function toRef(obj, key) {
+    const wrapper = {
+      get value() {
+        return obj[key]
+      },
+      // 设置值
+      set value(val) {
+        obj[key] = val;
+      },
+    };
+    Object.defineProperty(wrapper, '__v_isRef', { value: true });
+    return wrapper
+  }
+
+  function toRefs(obj) {
+    const ret = {};
+    for (const key in obj) {
+      ret[key] = toRef(obj, key);
+    }
+    return ret
+  }
+
+  function proxyRefs(target) {
+    return new Proxy(target, {
+      get(target, key, receiver) {
+        const value = Reflect.get(target, key, receiver);
+        return value.__v_isRef ? value.value : value
+      },
+      set(target, key, newValue, recivier) {
+        // 先读取之前的真实值
+        const value = target[key];
+        if (value.__v_isRef) {
+          value.value = newValue;
+          return true
+        }
+        return Reflect.set(target, key, newValue, recivier)
+      },
+    })
+  }
+
   function ref(value) {
     if (isRef(value)) return value
     return new RefImpl(value)
@@ -319,7 +359,7 @@ var MiniVue = (function () {
 
   class RefImpl {
     constructor(value) {
-      this.__isRef = true;
+      this.__v_isRef = true;
       this._value = convert(value);
     }
 
@@ -341,7 +381,7 @@ var MiniVue = (function () {
   }
 
   function isRef(value) {
-    return !!value.__isRef
+    return !!value.__v_isRef
   }
 
   function computed(getterOrOption) {
@@ -458,6 +498,9 @@ var MiniVue = (function () {
     shallowReadonly,
     effect,
     ref,
+    toRef,
+    toRefs,
+    proxyRefs,
     computed,
     jobQueue,
     flushJob,

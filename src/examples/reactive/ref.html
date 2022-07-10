@@ -10,12 +10,33 @@
 
   <body>
     <script>
-      const { effect, ref } = MiniVue
+      const { effect, ref, reactive, toRef, toRefs, proxyRefs } = MiniVue
+      // 简单 ref
+      // const foo = ref(1)
+      // effect(() => {
+      //   console.log('foo: ', foo.value)
+      // })
 
-      const foo = ref(1)
-      effect(() => {
-        console.log('foo: ', foo.value)
+      // 单个解构
+      // const obj = reactive({ foo: 1, bar: 2 })
+      // const newObj = {
+      //   foo: toRef(obj, 'foo'),
+      //   bar: toRef(obj, 'bar'),
+      // }
+
+      // 批量解构
+      // const obj = reactive({ foo: 1, bar: 2 })
+      // const newObj = {
+      //   ...toRefs(obj),
+      // }
+      // console.log(newObj)
+
+      // 自动脱 ref
+      const obj = reactive({ foo: 1, bar: 2 })
+      const newObj = proxyRefs({
+        ...toRefs(obj),
       })
+      console.log(newObj.foo)
     </script>
   </body>
 </html>
