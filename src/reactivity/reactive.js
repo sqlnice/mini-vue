@@ -3,6 +3,7 @@ import { track, trigger } from './effect'
 import { TriggerOpTypes } from './operations'
 
 const proxyMap = new WeakMap()
+// 用于拦截 for...in 操作时，关联副作用函数
 export const ITERATE_KEY = Symbol()
 
 /**
@@ -36,25 +37,25 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       }
       return res
     },
-    set(target, key, value, receiver) {
+    set(target, key, newValue, receiver) {
       if (isReadonly) {
         console.warn(`属性 ${key} 是只读的`)
         return true
       }
-      const type = Object.prototype.hasOwnProperty.call(target, key) ? TriggerOpTypes.SET : TriggerOpTypes.ADD
-      let oldLength = target.length
+      const type = isArray(target)
+        ? Number(key) < target.length
+          ? TriggerOpTypes.SET
+          : TriggerOpTypes.ADD
+        : Object.prototype.hasOwnProperty.call(target, key)
+        ? TriggerOpTypes.SET
+        : TriggerOpTypes.ADD
       const oldValue = target[key]
-      const res = Reflect.set(target, key, value, receiver)
+      const res = Reflect.set(target, key, newValue, receiver)
       // 说明 receiver 就是 target 的代理对象
       if (target === receiver.raw) {
-        if (hasChanged(oldValue, value)) {
+        if (hasChanged(oldValue, newValue)) {
           // 触发更新
-          trigger(target, key, type)
-          // 针对数组长度暂时这样处理
-          // TODO 根据 RefLect 判断
-          if (isArray(target) && hasChanged(oldLength, value.length)) {
-            trigger(target, 'length')
-          }
+          trigger(target, key, type, newValue)
         }
       }
       return res

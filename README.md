@@ -50,11 +50,22 @@
 - [x] 嵌套 reactive(reactive(obj))
 - [x] 代理多次 let a = reactive(obj), b = reactive(obj)
 - [x] 深层对象代理
-- [x] 数组
 - [x] 劫持 key in obj 操作
 - [x] 使用 for...in 循环遍历对象 新增 key 用 ownKeys 拦截，修改 key 在 set 里做判断是设置还是添加
 - [x] 浅响应与深响应
 - [x] 只读与浅只读
+- [x] 数组
+
+  - [x] 通过索引访问数组元素：arr[0]
+  - [x] 访问数组的长度：arr.length
+  - [] 把数组作为对象，使用 for...in 循环遍历
+  - [] 使用 for...of 迭代遍历数组
+  - [] 数组的原型方法，concat/join/every/some/find/findIndex/includes 等
+
+  - [] 通过索引修改数组元素值：arr[1] = 3
+  - [] 修改数组长度：arr.length = 0
+  - [] 数组的栈方法：push/pop/shift/unshift
+  - [] 修改数组的原型方法：splice/fill/sort 等
 
 ### effect
 

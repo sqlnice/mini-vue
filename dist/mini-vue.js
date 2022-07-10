@@ -89,7 +89,7 @@ var MiniVue = (function () {
     activeEffect.deps.push(deps);
   }
 
-  function trigger(target, key, type) {
+  function trigger(target, key, type, newValue) {
     const depsMap = targetMap.get(target);
     if (!depsMap) return
     // 取得与 key 相关的副作用函数
@@ -115,6 +115,31 @@ var MiniVue = (function () {
           }
         });
     }
+    // 当给数组通过索引设置值时，触发相关依赖
+    if (isArray(target)) {
+      const lengthEffects = depsMap.get('length');
+      lengthEffects &&
+        lengthEffects.forEach(effectFn => {
+          if (effectFn !== activeEffect) {
+            effectsToRun.add(effectFn);
+          }
+        });
+    }
+
+    // 直接修改数组的长度
+    if (isArray(target) && key === 'length') {
+      depsMap.forEach((effects, key) => {
+        if (key >= newValue) {
+          // 只触发长度之后的索引依赖的副作用函数
+          effects.forEach(effectFn => {
+            if (effectFn !== activeEffect) {
+              effectsToRun.add(effectFn);
+            }
+          });
+        }
+      });
+    }
+
     effectsToRun.forEach(effectFn => {
       if (effectFn.options.scheduler) {
         // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
@@ -147,6 +172,7 @@ var MiniVue = (function () {
   }
 
   const proxyMap = new WeakMap();
+  // 用于拦截 for...in 操作时，关联副作用函数
   const ITERATE_KEY = Symbol();
 
   /**
@@ -180,25 +206,25 @@ var MiniVue = (function () {
         }
         return res
       },
-      set(target, key, value, receiver) {
+      set(target, key, newValue, receiver) {
         if (isReadonly) {
           console.warn(`属性 ${key} 是只读的`);
           return true
         }
-        const type = Object.prototype.hasOwnProperty.call(target, key) ? TriggerOpTypes.SET : TriggerOpTypes.ADD;
-        let oldLength = target.length;
+        const type = isArray(target)
+          ? Number(key) < target.length
+            ? TriggerOpTypes.SET
+            : TriggerOpTypes.ADD
+          : Object.prototype.hasOwnProperty.call(target, key)
+          ? TriggerOpTypes.SET
+          : TriggerOpTypes.ADD;
         const oldValue = target[key];
-        const res = Reflect.set(target, key, value, receiver);
+        const res = Reflect.set(target, key, newValue, receiver);
         // 说明 receiver 就是 target 的代理对象
         if (target === receiver.raw) {
-          if (hasChanged(oldValue, value)) {
+          if (hasChanged(oldValue, newValue)) {
             // 触发更新
-            trigger(target, key, type);
-            // 针对数组长度暂时这样处理
-            // TODO 根据 RefLect 判断
-            if (isArray(target) && hasChanged(oldLength, value.length)) {
-              trigger(target, 'length');
-            }
+            trigger(target, key, type, newValue);
           }
         }
         return res
