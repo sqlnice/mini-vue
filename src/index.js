@@ -1,4 +1,4 @@
-import { reactive, effect, ref, computed, jobQueue, flushJob } from './reactivity/index.js'
+import { reactive, effect, ref, computed, jobQueue, flushJob, watch } from './reactivity/index.js'
 export default MiniVue = {
   reactive,
   effect,
@@ -6,4 +6,5 @@ export default MiniVue = {
   computed,
   jobQueue,
   flushJob,
+  watch,
 }
