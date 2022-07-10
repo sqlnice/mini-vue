@@ -17,7 +17,15 @@ export function watch(source, cb, options) {
   }
   const effectFn = effect(() => getter(), {
     lazy: true,
-    scheduler: job,
+    scheduler: () => {
+      if (options.flush === 'post') {
+        const p = Promise.resolve()
+        p.then(job) // 'post'
+      } else {
+        job() // 'sync'
+      }
+      // pre 涉及到组件更新，暂时无法模拟
+    },
   })
 
   if (options.immediate) {

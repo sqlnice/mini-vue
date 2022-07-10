@@ -25,8 +25,15 @@
       // )
 
       // 立即执行
+      // watch(observed, (newValue, oldValue) => console.log('新值：', newValue?.count, '旧值：', oldValue?.count), {
+      //   immediate: true,
+      // })
+
+      // 执行时机
       watch(observed, (newValue, oldValue) => console.log('新值：', newValue?.count, '旧值：', oldValue?.count), {
-        immediate: true,
+        // 在 watch 创建时立即执行一次
+        flush: 'post', // 'post' 调度函数需要将副作用函数放到一个微任务队列中，并等待 DOM 更新结束后再执行 | 'sync' 默认
+        // pre 和 post 原本语义指组件更新前后
       })
     </script>
   </body>
