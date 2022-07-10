@@ -45,14 +45,18 @@
 - 为什么使用 WeakMap
   当 reactiveObject 不再使用后，不必手动去 WeakMap 里删除，垃圾回收系统可以自动回收
 
-### 特例处理
+### reactive
 
-- [x] reactive(reactive(obj))
-- [x] let a = reactive(obj), b = reactive(obj)
-- [x] hasChanged
+- [x] 嵌套 reactive(reactive(obj))
+- [x] 代理多次 let a = reactive(obj), b = reactive(obj)
 - [x] 深层对象代理
-- [x] 嵌套 effect
 - [x] 数组
+- [x] 劫持 key in obj 操作
+
+### effect
+
+- [x] hasChanged
+- [x] 嵌套 effect
 
 ### computed
 
