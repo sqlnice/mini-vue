@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <script>
+      const { reactive, effect } = MiniVue
+      const obj = { count: 1 }
+      // 普通
+      // const observed = reactive(obj)
+      // effect(() => {
+      //   console.log('observed.count is:', observed.count)
+      // })
+
+      // in: key in obj
+      const observed = reactive(obj)
+      effect(() => {
+        console.log('count' in observed)
+      })
+
+      // let a = reactive(obj), b = reactive(obj)
+      // 会代理两次 obj
+      // let a = reactive(obj),
+      //   b = reactive(obj)
+
+      // 深层对象代理
+      // const observed = reactive({
+      //   city: '苏州',
+      //   student: {
+      //     name: 'sql',
+      //   },
+      // })
+      // effect(() => {
+      //   console.log('城市变化:', observed.city)
+      //   console.log('学生名称变化:', observed.student.name)
+      // })
+
+      // 数组
+      // const observed = reactive([1, 2, 3])
+      // effect(() => {
+      //   console.log('index 4 is:', observed[4])
+      // })
+      // effect(() => {
+      //   console.log('length is:', observed.length)
+      // })
+    </script>
+  </body>
+</html>

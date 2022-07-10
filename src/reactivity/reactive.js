@@ -30,6 +30,11 @@ export function reactive(target) {
       }
       return res
     },
+    has(target, key) {
+      // 检测 in 操作  key in obj
+      track(target, key)
+      return Reflect.has(target, key)
+    },
   })
   proxyMap.set(target, proxy)
   return proxy
