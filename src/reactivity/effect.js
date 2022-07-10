@@ -10,6 +10,7 @@ const effectStack = []
 export function effect(fn, options = {}) {
   const effectFn = () => {
     try {
+      cleanup(effectFn)
       effectStack.push(effectFn)
       activeEffect = effectFn
       return fn()
@@ -18,12 +19,22 @@ export function effect(fn, options = {}) {
       activeEffect = effectStack[effectStack.length - 1]
     }
   }
+  effectFn.deps = []
   // computed { lazy }
   if (!options.lazy) {
     effectFn()
   }
   effectFn.scheduler = options.scheduler
   return effectFn
+}
+
+function cleanup(effectFn) {
+  for (let i = 0; i < effectFn.deps.length; i++) {
+    // deps 是依赖集合
+    const deps = effectFn.deps[i]
+    deps.delete(effectFn)
+  }
+  effectFn.deps.length = 0
 }
 
 const targetMap = new WeakMap()
@@ -44,7 +55,10 @@ export function track(target, key) {
   if (!deps) {
     depsMap.set(key, (deps = new Set()))
   }
+  // 把当前激活的副作用函数添加到依赖集合 deps 中
   deps.add(activeEffect)
+  // deps 就是一个与当前副作用函数存在联系的依赖集合
+  activeEffect.deps.push(deps)
 }
 
 export function trigger(target, key) {
@@ -52,7 +66,8 @@ export function trigger(target, key) {
   if (!depsMap) return
   const deps = depsMap.get(key)
   if (!deps) return
-  deps.forEach(effectFn => {
+  const depsToRun = new Set(deps)
+  depsToRun.forEach(effectFn => {
     if (effectFn.scheduler) {
       // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
       effectFn.scheduler(effectFn)

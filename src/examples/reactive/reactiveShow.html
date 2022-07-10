@@ -76,15 +76,23 @@
       // })
 
       // 完善调度器 - 合并任务，多次同时间内的任务只执行最后一次
-      const observed = reactive(obj)
-      effect(() => console.log(observed.count), {
-        scheduler(fn) {
-          jobQueue.add(fn)
-          flushJob()
-        },
+      // const observed = reactive(obj)
+      // effect(() => console.log(observed.count), {
+      //   scheduler(fn) {
+      //     jobQueue.add(fn)
+      //     flushJob()
+      //   },
+      // })
+      // observed.count++
+      // observed.count++
+
+      // effect 分支切换与 cleanup
+      const observed = reactive({ ok: true, text: 'sql' })
+      effect(() => {
+        console.log(observed.ok ? observed.text : '无')
       })
-      observed.count++
-      observed.count++
+      observed.ok = false
+      observed.text = 'sql2'
     </script>
   </body>
 </html>
