@@ -1,5 +1,5 @@
 import { effect } from './effect'
-export function watch(source, cb, options) {
+export function watch(source, cb, options = {}) {
   let getter
   if (typeof source === 'function') {
     getter = source
@@ -9,10 +9,21 @@ export function watch(source, cb, options) {
   }
   let oldValue, newValue
 
+  // 用来存储用户注册的过期回调
+  let cleanup
+  function onInvalidate(fn) {
+    // 将过期回调存储到 cleanup 中
+    cleanup = fn
+  }
+
   const job = () => {
     // 数据变化时执行回调
     newValue = effectFn()
-    cb(newValue, oldValue)
+    // 调用回调之前，先调用过期回到
+    if (cleanup) {
+      cleanup()
+    }
+    cb(newValue, oldValue, onInvalidate)
     oldValue = newValue
   }
   const effectFn = effect(() => getter(), {
