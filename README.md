@@ -58,12 +58,12 @@
 
   - [x] 通过索引访问数组元素：arr[0]
   - [x] 访问数组的长度：arr.length
-  - [] 把数组作为对象，使用 for...in 循环遍历
-  - [] 使用 for...of 迭代遍历数组
+  - [x] 把数组作为对象，使用 for...in 循环遍历
+  - [x] 使用 for...of 迭代遍历数组
   - [] 数组的原型方法，concat/join/every/some/find/findIndex/includes 等
 
-  - [] 通过索引修改数组元素值：arr[1] = 3
-  - [] 修改数组长度：arr.length = 0
+  - [x] 通过索引修改数组元素值：arr[1] = 3
+  - [x] 修改数组长度：arr.length = 0
   - [] 数组的栈方法：push/pop/shift/unshift
   - [] 修改数组的原型方法：splice/fill/sort 等
 

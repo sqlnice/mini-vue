@@ -20,7 +20,8 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       if (key === '__isReactive') return true
       if (key === 'raw') return target
       // 在非只读时才建立响应联系
-      if (!isReadonly) {
+      // 数组调用 for...of 或者 values 方法时，都会读取数组的 Symbol.interator 属性，是一个 symbol 值，为避免意外及提升性能，不应与这类 symbol 值直接建立响应联系
+      if (!isReadonly && typeof key !== 'symbol') {
         // 依赖依赖
         track(target, key)
       }
@@ -67,7 +68,8 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
     },
     ownKeys(target) {
       // 拦截 for...in 操作
-      track(target, ITERATE_KEY)
+      // 如果是数组使用 length 建立响应联系
+      track(target, isArray(target) ? 'length' : ITERATE_KEY)
       return Reflect.ownKeys(target)
     },
     deleteProperty(target, key) {
