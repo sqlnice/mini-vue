@@ -1,3 +1,6 @@
+import { TriggerOpTypes } from './operations'
+import { ITERATE_KEY } from './reactive'
+
 let activeEffect
 const effectStack = []
 // effectStack 先进后出，解决 effect 嵌套问题
@@ -24,7 +27,7 @@ export function effect(fn, options = {}) {
   if (!options.lazy) {
     effectFn()
   }
-  effectFn.scheduler = options.scheduler
+  effectFn.options = options
   return effectFn
 }
 
@@ -61,16 +64,36 @@ export function track(target, key) {
   activeEffect.deps.push(deps)
 }
 
-export function trigger(target, key) {
+export function trigger(target, key, type) {
   const depsMap = targetMap.get(target)
   if (!depsMap) return
-  const deps = depsMap.get(key)
-  if (!deps) return
-  const depsToRun = new Set(deps)
-  depsToRun.forEach(effectFn => {
-    if (effectFn.scheduler) {
+  // 取得与 key 相关的副作用函数
+  const effects = depsMap.get(key)
+  // 取得与 ITERATE_KEY 相关的副作用函数
+  const iterateEffects = depsMap.get(ITERATE_KEY)
+
+  const effectsToRun = new Set()
+
+  effects &&
+    effects.forEach(effectFn => {
+      if (effectFn !== activeEffect) {
+        effectsToRun.add(effectFn)
+      }
+    })
+  // 只有操作类型为 'ADD'/'DELETE' 时，才触发与 ITERATE_KEY 相关联的副作用函数重新执行
+  // 比如 for...in，修改值不用触发，因为他只检测 key；obj.foo = 2，设置 obj 新的 key 时，才触发
+  if ([TriggerOpTypes.ADD, TriggerOpTypes.DELETE].includes(type)) {
+    iterateEffects &&
+      iterateEffects.forEach(effectFn => {
+        if (effectFn !== activeEffect) {
+          effectsToRun.add(effectFn)
+        }
+      })
+  }
+  effectsToRun.forEach(effectFn => {
+    if (effectFn.options.scheduler) {
       // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
-      effectFn.scheduler(effectFn)
+      effectFn.options.scheduler(effectFn)
     } else {
       effectFn()
     }

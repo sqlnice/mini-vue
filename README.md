@@ -52,6 +52,7 @@
 - [x] 深层对象代理
 - [x] 数组
 - [x] 劫持 key in obj 操作
+- [x] 使用 for...in 循环遍历对象 新增 key 用 ownKeys 拦截，修改 key 在 set 里做判断是设置还是添加
 
 ### effect
 

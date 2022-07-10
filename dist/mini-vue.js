@@ -19,6 +19,13 @@ var MiniVue = (function () {
     return typeof target === 'function'
   }
 
+  const TriggerOpTypes = {
+    SET: 'set',
+    ADD: 'add',
+    DELETE: 'delete',
+    CLEAR: 'clear',
+  };
+
   let activeEffect;
   const effectStack = [];
   // effectStack 先进后出，解决 effect 嵌套问题
@@ -45,7 +52,7 @@ var MiniVue = (function () {
     if (!options.lazy) {
       effectFn();
     }
-    effectFn.scheduler = options.scheduler;
+    effectFn.options = options;
     return effectFn
   }
 
@@ -82,16 +89,36 @@ var MiniVue = (function () {
     activeEffect.deps.push(deps);
   }
 
-  function trigger(target, key) {
+  function trigger(target, key, type) {
     const depsMap = targetMap.get(target);
     if (!depsMap) return
-    const deps = depsMap.get(key);
-    if (!deps) return
-    const depsToRun = new Set(deps);
-    depsToRun.forEach(effectFn => {
-      if (effectFn.scheduler) {
+    // 取得与 key 相关的副作用函数
+    const effects = depsMap.get(key);
+    // 取得与 ITERATE_KEY 相关的副作用函数
+    const iterateEffects = depsMap.get(ITERATE_KEY);
+
+    const effectsToRun = new Set();
+
+    effects &&
+      effects.forEach(effectFn => {
+        if (effectFn !== activeEffect) {
+          effectsToRun.add(effectFn);
+        }
+      });
+    // 只有操作类型为 'ADD'/'DELETE' 时，才触发与 ITERATE_KEY 相关联的副作用函数重新执行
+    // 比如 for...in，修改值不用触发，因为他只检测 key；obj.foo = 2，设置 obj 新的 key 时，才触发
+    if ([TriggerOpTypes.ADD, TriggerOpTypes.DELETE].includes(type)) {
+      iterateEffects &&
+        iterateEffects.forEach(effectFn => {
+          if (effectFn !== activeEffect) {
+            effectsToRun.add(effectFn);
+          }
+        });
+    }
+    effectsToRun.forEach(effectFn => {
+      if (effectFn.options.scheduler) {
         // 目前是计算属性用到，计算属性依赖的响应式对象变化之后触发更新
-        effectFn.scheduler(effectFn);
+        effectFn.options.scheduler(effectFn);
       } else {
         effectFn();
       }
@@ -120,6 +147,7 @@ var MiniVue = (function () {
   }
 
   const proxyMap = new WeakMap();
+  const ITERATE_KEY = Symbol();
   function reactive(target) {
     if (!isObject(target)) return target
     if (isReactive(target)) return target
@@ -134,12 +162,13 @@ var MiniVue = (function () {
         return isObject(res) ? reactive(res) : res
       },
       set(target, key, value, receiver) {
+        const type = Object.prototype.hasOwnProperty.call(target, key) ? TriggerOpTypes.SET : TriggerOpTypes.ADD;
         let oldLength = target.length;
         const oldValue = target[key];
         const res = Reflect.set(target, key, value, receiver);
         if (hasChanged(oldValue, value)) {
           // 触发更新
-          trigger(target, key);
+          trigger(target, key, type);
           // 针对数组长度暂时这样处理
           // TODO 根据 RefLect 判断
           if (isArray(target) && hasChanged(oldLength, value.length)) {
@@ -149,9 +178,25 @@ var MiniVue = (function () {
         return res
       },
       has(target, key) {
-        // 检测 in 操作  key in obj
+        // 拦截 in 操作  key in obj
         track(target, key);
         return Reflect.has(target, key)
+      },
+      ownKeys(target) {
+        // 拦截 for...in 操作
+        track(target, ITERATE_KEY);
+        return Reflect.ownKeys(target)
+      },
+      deleteProperty(target, key) {
+        // 判断被操作的属性是否是对象自己的属性
+        const hadKey = Object.prototype.hasOwnProperty.call(target, key);
+        // 使用 Reflect 完成删除操作
+        const res = Reflect.deleteProperty(target, key);
+        if (res && hadKey) {
+          // 只有成功删除，才触发更新
+          trigger(target, key, TriggerOpTypes.DELETE);
+        }
+        return res
       },
     });
     proxyMap.set(target, proxy);

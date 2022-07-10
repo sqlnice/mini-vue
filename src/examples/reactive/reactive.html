@@ -19,10 +19,28 @@
       // })
 
       // in: key in obj
+      // const observed = reactive(obj)
+      // effect(() => {
+      //   console.log('count' in observed)
+      // })
+
+      // 使用 for...in 循环遍历对象
+
       const observed = reactive(obj)
       effect(() => {
-        console.log('count' in observed)
+        for (const key in observed) {
+          console.log(key)
+        }
       })
+      setTimeout(() => {
+        observed.count = 2
+      }, 1000)
+      setTimeout(() => {
+        observed.foo = 2
+      }, 2000)
+      setTimeout(() => {
+        delete observed.count
+      }, 3000)
 
       // let a = reactive(obj), b = reactive(obj)
       // 会代理两次 obj
