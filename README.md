@@ -199,9 +199,22 @@
 
 🟥 **挂载子节点和元素的属性**
 
+挂载时，如果 children 子元素为数组，要遍历调用 patch 重新挂载
+
+如果存在 props，使用 el[key] = vnode.props[key] 直接设置 ？
+
 🟥 **HTML Attributes 与 DOM Properties**
 
+**HTML Attributes 的作用是设置与之对应的初始值。**一旦值改变，那么 DOM Properties 始终存储当前值，而通过 getAttribute 函数得到的值依然是初始值
+
 🟥 **正确地设置元素属性**
+
+先获取 el 本身 key 的类型，比如 disabled。
+
+如果 disabled 在 el 上存在，并且 el[disabled] 的类型是 Boolean 且 vnode.props.disabled 为空字符串，
+则手动置为 true，否在直接使用 el[key] = value 设置。此步骤可抽象为 shouldSetAsProps
+
+如果 vnode.props 中的属性不具有对应的 DOM Properties，则使用 setAttribute 来完成属性设置
 
 🟥 **class 的处理**
 

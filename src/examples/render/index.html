@@ -11,16 +11,13 @@
   <body>
     <div id="app"></div>
     <script>
-      console.log(MiniVue)
       const { createRenderer, h, effect, ref } = MiniVue
       const renderer = createRenderer()
-      const text = ref('')
+      // 简单的渲染器
+      const text = ref('内容')
       effect(() => {
-        renderer.render(h('div', text.value), document.getElementById('app'))
+        renderer.render(h('div', { id: 'id1' }, text.value), document.getElementById('app'))
       })
-      setTimeout(() => {
-        text.value = '内容2'
-      }, 1000)
     </script>
   </body>
 </html>

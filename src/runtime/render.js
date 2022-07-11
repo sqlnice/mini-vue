@@ -1,3 +1,10 @@
+import { isArray } from '../utils'
+function shouldSetAsProps(el, key) {
+  // 特殊处理
+  if (key === 'form' && el.tagName === 'INPUT') return false
+  // 兜底
+  return key in el
+}
 const browserOptions = {
   // 创建元素
   createElement(tag) {
@@ -11,9 +18,22 @@ const browserOptions = {
   insert(el, parent, anchor = null) {
     parent.appendChild(el, anchor)
   },
+  // 处理 prop
+  patchProps(el, key, prevValue, nextValue) {
+    if (shouldSetAsProps) {
+      const type = typeof el[key]
+      if (type === 'boolean' && nextValue === '') {
+        el[key] = true
+      } else {
+        el[key] = nextValue
+      }
+    } else {
+      el.setAttribute(key, nextValue)
+    }
+  },
 }
 export function createRenderer(options = browserOptions) {
-  const { createElement, setElementText, insert } = options
+  const { createElement, setElementText, insert, patchProps } = options
   function render(vnode, container) {
     if (vnode) {
       // 更新
@@ -52,7 +72,19 @@ export function createRenderer(options = browserOptions) {
       // 文本节点
       // 设置元素的文本节点
       setElementText(el, vnode.children)
+    } else if (isArray(vnode.children)) {
+      // 挂载时，如果 children 子元素为数组，要遍历调用 patch 重新挂载
+      vnode.children.forEach(child => {
+        patch(null, child, el)
+      })
     }
+
+    if (vnode.props) {
+      for (const key in vnode.props) {
+        patchProps(el, key, null, vnode.props[key])
+      }
+    }
+
     // 在给定的 parent 下添加指定的元素
     insert(el, container)
     console.log('挂载', el)
