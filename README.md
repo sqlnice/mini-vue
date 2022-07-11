@@ -181,42 +181,50 @@
 
 ✅ **渲染器的基本概念**
 
-虚拟 DOM 用 virtual DOM 来表达，简称 vnode
+虚拟 `DOM` 用 `virtual DOM` 来表达，简称 `vnode`
 
-渲染器把虚拟 DOM 节点渲染为真实 DOM 节点的过程叫做挂载，用 mount 来表达
+渲染器把虚拟 `DOM` 节点渲染为真实 `DOM` 节点的过程叫做挂载，用 `mount` 来表达
 
-渲染器把内容挂载到目标元素，这个目标元素称为 container
+渲染器把内容挂载到目标元素，这个目标元素称为 `container`
 
-在渲染时，可能会多次调用，由于传入前后的 vnode 值不同，我们需要 patch 函数来比较、剪裁传进来的 vnode，再挂载
+在渲染时，可能会多次调用，由于传入前后的 `vnode` 值不同，我们需要 `patch` 函数来比较、剪裁传进来的 `vnode` ，再挂载
 
-🟥 **自定义渲染器**
+✅ **自定义渲染器**
 
-以浏览器为渲染目标平台，编写 vnode 结构
+以浏览器为渲染目标平台，编写 `vnode` 结构
 
-将浏览器特有 API 抽离为配置项，该配置项可以作为 createRenderer 函数的参数
+将浏览器特有 `API` 抽离为配置项，该配置项可以作为 `createRenderer` 函数的参数
 
 ## ⚛️ 挂载与更新
 
-🟥 **挂载子节点和元素的属性**
+✅ **挂载子节点和元素的属性**
 
-挂载时，如果 children 子元素为数组，要遍历调用 patch 重新挂载
+挂载时，如果 `children` 子元素为数组，要遍历调用 `patch` 重新挂载
 
-如果存在 props，使用 el[key] = vnode.props[key] 直接设置 ？
+如果存在 `props` ，使用 `el[key] = vnode.props[key]` 直接设置 ？
 
-🟥 **HTML Attributes 与 DOM Properties**
+✅ **HTML Attributes 与 DOM Properties**
 
-**HTML Attributes 的作用是设置与之对应的初始值。**一旦值改变，那么 DOM Properties 始终存储当前值，而通过 getAttribute 函数得到的值依然是初始值
+**`HTML Attributes` 的作用是设置与之对应的初始值**。一旦值改变，那么 `DOM Properties` 始终存储当前值，而通过 `getAttribute` 函数得到的值依然是初始值
 
-🟥 **正确地设置元素属性**
+✅ **正确地设置元素属性**
 
-先获取 el 本身 key 的类型，比如 disabled。
+先获取 `el` 本身 `key` 的类型，比如 `disabled`
 
-如果 disabled 在 el 上存在，并且 el[disabled] 的类型是 Boolean 且 vnode.props.disabled 为空字符串，
-则手动置为 true，否在直接使用 el[key] = value 设置。此步骤可抽象为 shouldSetAsProps
+如果 `disabled` 在 `el` 上存在，并且 `el[disabled]` 的类型是 `Boolean` 且 `vnode.props.disabled` 为空字符串，
+则手动置为 `true`，否在直接使用 `el[key] = value` 设置。此步骤可抽象为 `shouldSetAsProps`
 
-如果 vnode.props 中的属性不具有对应的 DOM Properties，则使用 setAttribute 来完成属性设置
+如果 `vnode.props` 中的属性不具有对应的 `DOM Properties`，则使用 `setAttribute` 来完成属性设置
 
-🟥 **class 的处理**
+✅ **class 的处理**
+
+```js
+class: 'foo bar'
+class: { foo: true, bar: true }
+class: ['foo', { bar: true }]
+```
+
+分别针对三种情况进行格式化，最后调用 `el.className = 'foo bar'` 进行设置
 
 🟥 **卸载操作**
 

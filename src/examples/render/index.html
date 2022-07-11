@@ -14,10 +14,20 @@
       const { createRenderer, h, effect, ref } = MiniVue
       const renderer = createRenderer()
       // 简单的渲染器
-      const text = ref('内容')
-      effect(() => {
-        renderer.render(h('div', { id: 'id1' }, text.value), document.getElementById('app'))
-      })
+      // effect(() => {
+      //   renderer.render(h('div', { id: 'id1' }, '文本'), document.getElementById('app'))
+      // })
+
+      // class 的处理
+      // effect(() => {
+      //   renderer.render(h('div', { class: 'foo bar' }, '文本'), document.getElementById('app'))
+      // })
+      // effect(() => {
+      //   renderer.render(h('div', { class: { foo: true, bar: true } }, '文本'), document.getElementById('app'))
+      // })
+      // effect(() => {
+      //   renderer.render(h('div', { class: ['foo', { bar: true }] }, '文本'), document.getElementById('app'))
+      // })
     </script>
   </body>
 </html>

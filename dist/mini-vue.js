@@ -510,22 +510,47 @@ var MiniVue = (function () {
     insert(el, parent, anchor = null) {
       parent.appendChild(el, anchor);
     },
+    // 格式化 classNames
+    // class: 'foo bar'
+    // class: { foo: true, bar: true }
+    // class: ['foo', { bar: true }]
+    normalizeClass(classPropsValue) {
+      let res = '';
+      if (typeof classPropsValue === 'string') return classPropsValue + ' '
+      if (isArray(classPropsValue)) {
+        classPropsValue.forEach(classProp => {
+          res += browserOptions.normalizeClass(classProp);
+        });
+        return res
+      }
+      if (typeof classPropsValue === 'object') {
+        for (const key in classPropsValue) {
+          res += classPropsValue[key] ? key + ' ' : '';
+        }
+        return res
+      }
+    },
     // 处理 prop
     patchProps(el, key, prevValue, nextValue) {
-      if (shouldSetAsProps) {
-        const type = typeof el[key];
-        if (type === 'boolean' && nextValue === '') {
-          el[key] = true;
-        } else {
-          el[key] = nextValue;
-        }
+      if (key === 'class') {
+        // el.className 这种方式性能最优
+        el.className = nextValue || '';
       } else {
-        el.setAttribute(key, nextValue);
+        if (shouldSetAsProps) {
+          const type = typeof el[key];
+          if (type === 'boolean' && nextValue === '') {
+            el[key] = true;
+          } else {
+            el[key] = nextValue;
+          }
+        } else {
+          el.setAttribute(key, nextValue);
+        }
       }
     },
   };
   function createRenderer(options = browserOptions) {
-    const { createElement, setElementText, insert, patchProps } = options;
+    const { createElement, setElementText, insert, patchProps, normalizeClass } = options;
     function render(vnode, container) {
       if (vnode) {
         // 更新
@@ -573,7 +598,12 @@ var MiniVue = (function () {
 
       if (vnode.props) {
         for (const key in vnode.props) {
-          patchProps(el, key, null, vnode.props[key]);
+          if (key === 'class' && vnode.props.class) {
+            console.log(normalizeClass(vnode.props[key]));
+            patchProps(el, key, null, normalizeClass(vnode.props[key]));
+          } else {
+            patchProps(el, key, null, vnode.props[key]);
+          }
         }
       }
 
