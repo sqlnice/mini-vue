@@ -13,6 +13,8 @@ import {
   flushJob,
   watch,
 } from './reactivity/index.js'
+
+import { createRenderer, h } from './runtime/index.js'
 export default MiniVue = {
   reactive,
   shallowReactive,
@@ -27,4 +29,6 @@ export default MiniVue = {
   jobQueue,
   flushJob,
   watch,
+  createRenderer,
+  h,
 }
