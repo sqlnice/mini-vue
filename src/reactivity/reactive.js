@@ -1,4 +1,4 @@
-import { isObject, hasChanged, isArray } from './utils'
+import { isObject, hasChanged, isArray } from '../utils'
 import { track, trigger } from './effect'
 import { TriggerOpTypes } from './operations'
 

@@ -1,6 +1,6 @@
 import { TriggerOpTypes } from './operations'
 import { ITERATE_KEY, shouldTrack } from './reactive'
-import { isArray } from './utils'
+import { isArray } from '../utils'
 
 let activeEffect
 const effectStack = []

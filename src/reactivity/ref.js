@@ -1,6 +1,6 @@
 import { track, trigger } from './effect'
 import { reactive } from './reactive'
-import { hasChanged, isObject } from './utils'
+import { hasChanged, isObject } from '../utils'
 
 export function toRef(obj, key) {
   const wrapper = {

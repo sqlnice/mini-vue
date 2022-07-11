@@ -1,5 +1,5 @@
 import { effect, track, trigger } from './effect'
-import { isFunction } from './utils'
+import { isFunction } from '../utils'
 
 export function computed(getterOrOption) {
   let getter,
