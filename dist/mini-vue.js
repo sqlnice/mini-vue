@@ -7,16 +7,19 @@ var MiniVue = (function () {
     return typeof target === 'object' && target !== null
   }
 
-  function hasChanged(oldValue, newValue) {
-    return oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
-  }
-
   function isArray(target) {
     return Array.isArray(target)
   }
 
+  function isString(target) {
+    return typeof target === 'string'
+  }
+
   function isFunction(target) {
     return typeof target === 'function'
+  }
+  function hasChanged(oldValue, newValue) {
+    return oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
   }
 
   const TriggerOpTypes = {
@@ -572,12 +575,17 @@ var MiniVue = (function () {
      * @param {Element} container 挂载的目标节点
      */
     function patch(n1, n2, container) {
-      if (!n1) {
-        // 初始挂载
-        mountElement(n2, container);
-      } else {
-        // 两个节点都存在，打补丁
-        console.log('更新');
+      // 新旧节点类型不同 则直接卸载旧节点
+      if (n1 && n1.type !== n2.type) {
+        unmount(n1);
+        n1 = null;
+      }
+      const { type } = n2;
+      if (isString(type)) {
+        if (!n1) {
+          // 初始挂载
+          mountElement(n2, container);
+        }
       }
     }
 

@@ -1,4 +1,4 @@
-import { isArray } from '../utils'
+import { isArray, isObject, isString } from '../utils'
 function shouldSetAsProps(el, key) {
   // 特殊处理
   if (key === 'form' && el.tagName === 'INPUT') return false
@@ -80,12 +80,24 @@ export function createRenderer(options = browserOptions) {
    * @param {Element} container 挂载的目标节点
    */
   function patch(n1, n2, container) {
-    if (!n1) {
-      // 初始挂载
-      mountElement(n2, container)
+    // 新旧节点类型不同 则直接卸载旧节点
+    if (n1 && n1.type !== n2.type) {
+      unmount(n1)
+      n1 = null
+    }
+    const { type } = n2
+    if (isString(type)) {
+      if (!n1) {
+        // 初始挂载
+        mountElement(n2, container)
+      } else {
+        // 两个节点都存在，打补丁
+        patchElement(n1, n2)
+      }
+    } else if (isObject(type)) {
+      // TODO 更新组件
     } else {
-      // 两个节点都存在，打补丁
-      console.log('更新')
+      // TODO 更新其他类型的 vnode
     }
   }
 
@@ -119,6 +131,8 @@ export function createRenderer(options = browserOptions) {
     insert(el, container)
     console.log('挂载', el)
   }
+
+  function patchElement(n1, n2) {}
 
   function unmount(vnode) {
     const parent = vnode.el.parentNode
