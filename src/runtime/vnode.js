@@ -1,8 +1,12 @@
+import { isArray } from '../utils'
+
 export function h(type, props, children) {
   if (!type) return null
-  return {
+  let res = {
     type,
     props,
-    children,
+    children: isArray(children) ? children.map(child => h(child)) : children,
   }
+  console.log(res);
+  return res
 }

@@ -36,6 +36,43 @@
       // effect(() => {
       //   renderer.render(h(null, null, null), document.getElementById('app'))
       // })
+
+      // 事件处理
+      // effect(() => {
+      //   renderer.render(h('div', { onClick: () => console.log('点击0') }, '文本'), document.getElementById('app'))
+      // })
+      // effect(() => {
+      //   renderer.render(h('div', { onDblclick: () => console.log('双击') }, '文本'), document.getElementById('app'))
+      // })
+      // effect(() => {
+      //   renderer.render(
+      //     h('div', { onClick: [() => console.log('点击1'), () => console.log('点击2')] }, '文本'),
+      //     document.getElementById('app')
+      //   )
+      // })
+
+      // 事件冒泡与更新时机问题
+      const bol = ref(false)
+      effect(() => {
+        const vnode = {
+          type: 'div',
+          props: bol.value ? { onClick: () => console.log('点击父元素'), id: 'div2' } : { id: 'div' },
+          children: [
+            {
+              type: 'p',
+              props: {
+                onClick: () => {
+                  bol.value = true
+                  console.log(bol.value)
+                },
+                id: 'p',
+              },
+              children: 'text',
+            },
+          ],
+        }
+        renderer.render(vnode, document.getElementById('app'))
+      })
     </script>
   </body>
 </html>

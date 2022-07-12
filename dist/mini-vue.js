@@ -535,7 +535,47 @@ var MiniVue = (function () {
     },
     // 处理 prop
     patchProps(el, key, prevValue, nextValue) {
-      if (key === 'class') {
+      if (/^on/.test(key)) {
+        console.log('key:', key);
+        console.log('值:', nextValue);
+        // 处理事件
+        const name = key.slice(2).toLowerCase();
+
+        const invokers = el._vei || (el._vei = {});
+        // invokers 结构
+        // {
+        //   click: [],
+        //   dbclick: ()=>{}
+        // }
+
+        let invoker = invokers[key];
+
+        if (nextValue) {
+          // 更新事件
+          if (!invoker) {
+            invoker = el._vei[key] = e => {
+              // 如果事件被触发的时间 早于 事件被绑定的时间，说明那时还没有绑定
+              console.log(e.timeStamp, invoker.attched);
+              if (e.timeStamp < invoker.attched) return
+              // 如果是数组，遍历逐个调用事件处理函数
+              if (isArray(invoker.value)) {
+                invoker.value.forEach(fn => fn(e));
+              } else {
+                invoker.value(e);
+              }
+            };
+            invoker.value = nextValue;
+            // 事件绑定时添加 attched 属性，存储事件处理函数被绑定的时间
+            invoker.attched = performance.now();
+            el.addEventListener(name, invoker);
+          } else {
+            invoker.value = nextValue;
+          }
+        } else {
+          // 移除事件
+          el.removeEventListener(name, prevValue);
+        }
+      } else if (key === 'class') {
         // el.className 这种方式性能最优
         el.className = nextValue || '';
       } else {
@@ -592,7 +632,6 @@ var MiniVue = (function () {
     function mountElement(vnode, container) {
       // 创建元素
       const el = (vnode.el = createElement(vnode.type));
-
       if (typeof vnode.children === 'string') {
         // 文本节点
         // 设置元素的文本节点
@@ -607,7 +646,6 @@ var MiniVue = (function () {
       if (vnode.props) {
         for (const key in vnode.props) {
           if (key === 'class' && vnode.props.class) {
-            console.log(normalizeClass(vnode.props[key]));
             patchProps(el, key, null, normalizeClass(vnode.props[key]));
           } else {
             patchProps(el, key, null, vnode.props[key]);
@@ -617,7 +655,6 @@ var MiniVue = (function () {
 
       // 在给定的 parent 下添加指定的元素
       insert(el, container);
-      console.log('挂载', el);
     }
 
     function unmount(vnode) {
@@ -630,11 +667,13 @@ var MiniVue = (function () {
 
   function h(type, props, children) {
     if (!type) return null
-    return {
+    let res = {
       type,
       props,
-      children,
-    }
+      children: isArray(children) ? children.map(child => h(child)) : children,
+    };
+    console.log(res);
+    return res
   }
 
   var index = MiniVue = {
