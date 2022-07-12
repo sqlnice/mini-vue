@@ -65,8 +65,8 @@ export function createRenderer(options = browserOptions) {
       patch(container._vnode, vnode, container)
     } else {
       if (container._vnode) {
-        // 之前有，现在无
-        container.innerHTML = ''
+        // 调用 unmount 卸载 旧vnode
+        unmount(container._vnode)
       }
     }
     // 更新 vnode 引用
@@ -91,7 +91,7 @@ export function createRenderer(options = browserOptions) {
 
   function mountElement(vnode, container) {
     // 创建元素
-    const el = createElement(vnode.type)
+    const el = (vnode.el = createElement(vnode.type))
 
     if (typeof vnode.children === 'string') {
       // 文本节点
@@ -118,6 +118,11 @@ export function createRenderer(options = browserOptions) {
     // 在给定的 parent 下添加指定的元素
     insert(el, container)
     console.log('挂载', el)
+  }
+
+  function unmount(vnode) {
+    const parent = vnode.el.parentNode
+    parent.removeChild(vnode.el)
   }
 
   return { render }

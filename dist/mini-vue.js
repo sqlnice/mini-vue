@@ -557,8 +557,8 @@ var MiniVue = (function () {
         patch(container._vnode, vnode, container);
       } else {
         if (container._vnode) {
-          // 之前有，现在无
-          container.innerHTML = '';
+          // 调用 unmount 卸载 旧vnode
+          unmount(container._vnode);
         }
       }
       // 更新 vnode 引用
@@ -583,7 +583,7 @@ var MiniVue = (function () {
 
     function mountElement(vnode, container) {
       // 创建元素
-      const el = createElement(vnode.type);
+      const el = (vnode.el = createElement(vnode.type));
 
       if (typeof vnode.children === 'string') {
         // 文本节点
@@ -612,10 +612,16 @@ var MiniVue = (function () {
       console.log('挂载', el);
     }
 
+    function unmount(vnode) {
+      const parent = vnode.el.parentNode;
+      parent.removeChild(vnode.el);
+    }
+
     return { render }
   }
 
   function h(type, props, children) {
+    if (!type) return null
     return {
       type,
       props,

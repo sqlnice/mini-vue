@@ -28,6 +28,14 @@
       // effect(() => {
       //   renderer.render(h('div', { class: ['foo', { bar: true }] }, '文本'), document.getElementById('app'))
       // })
+
+      // 卸载
+      effect(() => {
+        renderer.render(h('div', { id: 'id1' }, '文本'), document.getElementById('app'))
+      })
+      effect(() => {
+        renderer.render(h(null, null, null), document.getElementById('app'))
+      })
     </script>
   </body>
 </html>
