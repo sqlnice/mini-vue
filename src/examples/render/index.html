@@ -11,7 +11,7 @@
   <body>
     <div id="app"></div>
     <script>
-      const { createRenderer, h, effect, ref } = MiniVue
+      const { createRenderer, h, effect, ref, reactive, Text, Comment } = MiniVue
       const renderer = createRenderer()
       // 简单的渲染器
       // effect(() => {
@@ -52,26 +52,65 @@
       // })
 
       // 事件冒泡与更新时机问题
-      const bol = ref(false)
+      // const bol = ref(false)
+      // effect(() => {
+      //   const vnode = {
+      //     type: 'div',
+      //     props: bol.value ? { onClick: () => console.log('点击父元素'), id: 'div2' } : { id: 'div' },
+      //     children: [
+      //       {
+      //         type: 'p',
+      //         props: {
+      //           onClick: () => {
+      //             bol.value = true
+      //             console.log(bol.value)
+      //           },
+      //           id: 'p',
+      //         },
+      //         children: 'text',
+      //       },
+      //     ],
+      //   }
+      //   renderer.render(vnode, document.getElementById('app'))
+      // })
+
+      // 更新子元素
+      // effect(() => {
+      //   renderer.render(
+      //     {
+      //       type: 'div',
+      //       children: '文字',
+      //     },
+      //     document.getElementById('app')
+      //   )
+      // })
+      // setTimeout(() => {
+      //   effect(() => {
+      //     renderer.render(
+      //       {
+      //         type: 'div',
+      //         children: [{ type: 'p', children: '更新后的文本' }],
+      //       },
+      //       document.getElementById('app')
+      //     )
+      //   })
+      // }, 1000)
+
+      // 文本节点和注释节点
       effect(() => {
-        const vnode = {
-          type: 'div',
-          props: bol.value ? { onClick: () => console.log('点击父元素'), id: 'div2' } : { id: 'div' },
-          children: [
-            {
-              type: 'p',
-              props: {
-                onClick: () => {
-                  bol.value = true
-                  console.log(bol.value)
-                },
-                id: 'p',
+        renderer.render(
+          {
+            type: 'div',
+            children: [
+              { type: Text, children: '文本节点(打开控制台查看注释节点)' },
+              {
+                type: Comment,
+                children: '我是注释节点',
               },
-              children: 'text',
-            },
-          ],
-        }
-        renderer.render(vnode, document.getElementById('app'))
+            ],
+          },
+          document.getElementById('app')
+        )
       })
     </script>
   </body>

@@ -14,7 +14,7 @@ import {
   watch,
 } from './reactivity/index.js'
 
-import { createRenderer, h } from './runtime/index.js'
+import { createRenderer, h, Text, Comment } from './runtime/index.js'
 export default MiniVue = {
   reactive,
   shallowReactive,
@@ -31,4 +31,6 @@ export default MiniVue = {
   watch,
   createRenderer,
   h,
+  Text,
+  Comment,
 }

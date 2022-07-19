@@ -1,4 +1,13 @@
 import { isArray, isObject, isString } from '../utils'
+
+/**
+ * 文本节点
+ */
+export const Text = Symbol()
+/**
+ * 注释节点
+ */
+export const Comment = Symbol()
 function shouldSetAsProps(el, key) {
   // 特殊处理
   if (key === 'form' && el.tagName === 'INPUT') return false
@@ -38,6 +47,16 @@ const browserOptions = {
       return res
     }
   },
+  createText(text) {
+    return document.createTextNode(text)
+  },
+  setText(el, text) {
+    el.nodeValue = text
+  },
+  createComment(text) {
+    return document.createComment(text)
+  },
+
   // 处理 prop
   patchProps(el, key, prevValue, nextValue) {
     if (/^on/.test(key)) {
@@ -98,10 +117,11 @@ const browserOptions = {
   },
 }
 export function createRenderer(options = browserOptions) {
-  const { createElement, setElementText, insert, patchProps, normalizeClass } = options
+  const { createElement, setElementText, insert, patchProps, normalizeClass, createText, setText, createComment } =
+    options
   function render(vnode, container) {
     if (vnode) {
-      // 更新
+      // 挂载
       patch(container._vnode, vnode, container)
     } else {
       if (container._vnode) {
@@ -136,6 +156,30 @@ export function createRenderer(options = browserOptions) {
       }
     } else if (isObject(type)) {
       // TODO 更新组件
+    } else if (type === Text) {
+      // 文本节点
+      if (!n1) {
+        // 没有旧节点，挂载
+        const el = (n2.el = createText(n2.children))
+        insert(el, container)
+      } else {
+        // 新旧都有，替换
+        const el = (n2.el = n1.el)
+        if (n2.children !== n1.children) {
+          setText(el, n2.children)
+        }
+      }
+    } else if (type === Comment) {
+      // 注释节点
+      if (!n1) {
+        const el = (n2.el = createComment(n2.children))
+        insert(el, container)
+      } else {
+        const el = (n2.el = n1.el)
+        if ((n2, children !== n1.children)) {
+          setText(el, n2.children)
+        }
+      }
     } else {
       // TODO 更新其他类型的 vnode
     }
@@ -144,7 +188,7 @@ export function createRenderer(options = browserOptions) {
   function mountElement(vnode, container) {
     // 创建元素
     const el = (vnode.el = createElement(vnode.type))
-    if (typeof vnode.children === 'string') {
+    if (isString(vnode.children)) {
       // 文本节点
       // 设置元素的文本节点
       setElementText(el, vnode.children)
@@ -178,7 +222,6 @@ export function createRenderer(options = browserOptions) {
     const el = (n2.el = n1.el)
     const oldProps = n1.props
     const newProps = n2.props
-
     // 第一步：更新 props
     for (const key in newProps) {
       if (newProps[key] !== oldProps[key]) {

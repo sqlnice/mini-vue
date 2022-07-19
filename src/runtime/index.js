@@ -1,4 +1,4 @@
-import { createRenderer } from './render'
+import { createRenderer, Text, Comment } from './render'
 import { h } from './vnode'
 
-export { createRenderer, h }
+export { createRenderer, h, Text, Comment }
