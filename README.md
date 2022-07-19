@@ -226,6 +226,10 @@ class: ['foo', { bar: true }]
 
 分别针对三种情况进行格式化，最后调用 `el.className = 'foo bar'` 进行设置
 
+🟥 **style 的处理**
+
+与 class 类似
+
 ✅ **卸载操作**
 
 把 el 和 vnode 绑定起来，更新时如果无 新 vnode，则卸载
@@ -277,11 +281,11 @@ class: ['foo', { bar: true }]
   旧 children 类型为 String：清空
   旧 children 类型为 空 ：都为空，什么也不做
 
-🟥 **文本节点和注释节点**
+✅ **文本节点和注释节点**
 
 用 Symbol() 增加文本和注释节点的类型，在 patch 阶段做判断。对于使用到的 DOM 操作封装起来
 
-🟥 **Fragment**
+✅ **Fragment**
 
 - 为什么存在？
 
