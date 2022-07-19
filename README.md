@@ -226,17 +226,17 @@ class: ['foo', { bar: true }]
 
 分别针对三种情况进行格式化，最后调用 `el.className = 'foo bar'` 进行设置
 
-🟥 **卸载操作**
+✅ **卸载操作**
 
 把 el 和 vnode 绑定起来，更新时如果无 新 vnode，则卸载
 
 把卸载函数封装起来，因为后面要 清除 el 事件、调用组件的生命周期等
 
-🟥 **区分 vnode 的类型**
+✅ **区分 vnode 的类型**
 
 在更新时判断 vnode.type 做不同的 patch
 
-🟥 **事件的处理**
+✅ **事件的处理**
 
 约束在 props 中以 on 开头的都算作事件
 
@@ -244,7 +244,7 @@ class: ['foo', { bar: true }]
 
 使用 invoker 既可以提升性能也可以解决事件冒泡与事件更新直接相互影响的问题( 🍓 **invoker 相关代码极其巧妙，可以品尝一下** )
 
-🟥 **事件冒泡与更新时机问题**
+✅ **事件冒泡与更新时机问题**
 
 可能存在子元素点击事件发生后冒泡到父元素，但父元素初始并没有绑定点击事件，而是在不确定的微任务队列中绑定的，所以会触发父元素的点击事件。
 
@@ -254,11 +254,64 @@ class: ['foo', { bar: true }]
 
 在触发时使用 e.timeStamp 来获取触发时间 (**记录从页面初始化完成到用户点击的那一刻所经过的时长**) ，比较两者时间即可
 
-🟥 **更新子节点**
+✅ **更新子节点**
+
+1️⃣ 根据新旧节点更新 props
+
+2️⃣ 更新 children
+
+- 新 children 类型为 String
+
+  旧 children 类型为 Array ：遍历旧节点卸载后替换
+  旧 children 类型为 String：直接替换
+  旧 children 类型为 空 ：直接替换
+
+- 新 children 类型为 Array
+
+  旧 children 类型为 Array ：**Diff 算法**
+  旧 children 类型为 String：直接替换
+  旧 children 类型为 空 ：直接替换
+
+- 新 children 类型为 空
+  旧 children 类型为 Array ：遍历旧节点卸载
+  旧 children 类型为 String：清空
+  旧 children 类型为 空 ：都为空，什么也不做
 
 🟥 **文本节点和注释节点**
 
+用 Symbol() 增加文本和注释节点的类型，在 patch 阶段做判断。对于使用到的 DOM 操作封装起来
+
 🟥 **Fragment**
+
+- 为什么存在？
+
+Vue.js 2 中必须且只有一个根节点，所以封装 option 这样的组件就只能外面加一层 template
+
+```js
+<template>
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+</template>
+```
+
+或者
+
+```js
+ <Li v-for="item in list">
+```
+
+用 Symbol() 增加 Fragment 的类型，在 patch 阶段做判断
+
+- 旧 vnode 不存在
+
+  只需将 Fragment 的 children 逐个挂载
+
+- 存在
+
+  只需更新 Fragment 的 children 即可
+
+📢 unmount 函数也要支持对 Fragment 类型的处理
 
 ## ⚛️ 简单 Diff 算法
 

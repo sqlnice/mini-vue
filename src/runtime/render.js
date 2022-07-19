@@ -128,10 +128,10 @@ export function createRenderer(options = browserOptions) {
     const { type } = n2
     if (isString(type)) {
       if (!n1) {
-        // 初始挂载
+        // 挂载节点
         mountElement(n2, container)
       } else {
-        // 两个节点都存在，打补丁
+        // 更新节点
         patchElement(n1, n2)
       }
     } else if (isObject(type)) {
@@ -169,7 +169,73 @@ export function createRenderer(options = browserOptions) {
     insert(el, container)
   }
 
-  function patchElement(n1, n2) {}
+  /**
+   * 更新节点
+   * @param {*} n1
+   * @param {*} n2
+   */
+  function patchElement(n1, n2) {
+    const el = (n2.el = n1.el)
+    const oldProps = n1.props
+    const newProps = n2.props
+
+    // 第一步：更新 props
+    for (const key in newProps) {
+      if (newProps[key] !== oldProps[key]) {
+        // 新旧不相等
+        patchProps(el, key, oldProps[key], newProps[key])
+      }
+    }
+    for (const key in oldProps) {
+      if (!key in newProps) {
+        // 旧 props 的值不在新 props 中
+        patchProps(el, key, oldProps[key], null)
+      }
+    }
+    // 第二部：更新 children
+    patchChildren(n1, n2, el)
+  }
+
+  /**
+   * 更新子节点 children
+   * @param {*} n1 旧节点
+   * @param {*} n2 新节点
+   * @param {*} container DOM
+   */
+  function patchChildren(n1, n2, container) {
+    // 新 children 类型为 String
+    if (isString(n2.children)) {
+      if (isArray(n1.children)) {
+        // 旧 children 类型为 Array ：遍历旧节点卸载后替换
+        n1.children.forEach(c => unmount(c))
+      }
+      // 替换
+      setElementText(container, n2.children)
+    } else if (isArray(n2.children)) {
+      // 新 children 类型为 Array
+      if (isArray(n1.children)) {
+        // TODO Diff 算法
+        n1.children.forEach(c => unmount(c))
+        n2.children.forEach(c => patch(null, c, container))
+      } else {
+        // 旧节点要么是文本要么为空
+        // 清空
+        setElementText(container, '')
+        // 挂载新节点
+        n2.children.forEach(c => patch(null, c, container))
+      }
+    } else {
+      // 新 children 类型为 空
+      if (isArray(n1.children)) {
+        // 旧 children 类型为 Array ：遍历旧节点卸载
+        n1.children.forEach(c => unmount(c))
+      } else if (isString(n1.children)) {
+        // 旧 children 类型为 String：清空
+        setElementText(container, '')
+      }
+      // 旧 children 类型为 空 ：都为空，什么也不做
+    }
+  }
 
   function unmount(vnode) {
     const parent = vnode.el.parentNode
