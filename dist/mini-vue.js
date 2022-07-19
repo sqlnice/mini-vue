@@ -494,14 +494,22 @@ var MiniVue = (function () {
     return value
   }
 
-  /**
-   * 文本节点
-   */
-  const Text = Symbol();
-  /**
-   * 注释节点
-   */
-  const Comment = Symbol();
+  const Shape = {
+    Text: Symbol(),
+    Comment: Symbol(),
+    Fragment: Symbol(),
+  };
+  function h(type, props, children) {
+    if (!type) return null
+    let res = {
+      type,
+      props,
+      children: isArray(children) ? children.map(child => h(child)) : children,
+    };
+    console.log(res);
+    return res
+  }
+
   function shouldSetAsProps(el, key) {
     // 特殊处理
     if (key === 'form' && el.tagName === 'INPUT') return false
@@ -648,7 +656,7 @@ var MiniVue = (function () {
           // 更新节点
           patchElement(n1, n2);
         }
-      } else if (isObject(type)) ; else if (type === Text) {
+      } else if (isObject(type)) ; else if (type === Shape.Text) {
         // 文本节点
         if (!n1) {
           // 没有旧节点，挂载
@@ -661,7 +669,7 @@ var MiniVue = (function () {
             setText(el, n2.children);
           }
         }
-      } else if (type === Comment) {
+      } else if (type === Shape.Comment) {
         // 注释节点
         if (!n1) {
           const el = (n2.el = createComment(n2.children));
@@ -671,6 +679,15 @@ var MiniVue = (function () {
           if ((children !== n1.children)) {
             setText(el, n2.children);
           }
+        }
+      } else if (type === Shape.Fragment) {
+        // Fragment 节点
+        if (!n1) {
+          // 无旧节点，直接挂载F
+          n2.children.forEach(c => patch(null, c, container));
+        } else {
+          // 新旧都有，更新
+          patchChildren(n1, n2, container);
         }
       } else ;
     }
@@ -771,22 +788,15 @@ var MiniVue = (function () {
     }
 
     function unmount(vnode) {
+      if (vnode.type === Shape.Fragment) {
+        vnode.children.forEach(c => unmount(c));
+        return
+      }
       const parent = vnode.el.parentNode;
       parent.removeChild(vnode.el);
     }
 
     return { render }
-  }
-
-  function h(type, props, children) {
-    if (!type) return null
-    let res = {
-      type,
-      props,
-      children: isArray(children) ? children.map(child => h(child)) : children,
-    };
-    console.log(res);
-    return res
   }
 
   var index = MiniVue = {
@@ -805,8 +815,7 @@ var MiniVue = (function () {
     watch,
     createRenderer,
     h,
-    Text,
-    Comment,
+    Shape,
   };
 
   return index;

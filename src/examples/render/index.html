@@ -11,7 +11,7 @@
   <body>
     <div id="app"></div>
     <script>
-      const { createRenderer, h, effect, ref, reactive, Text, Comment } = MiniVue
+      const { createRenderer, h, effect, ref, reactive, Shape } = MiniVue
       const renderer = createRenderer()
       // 简单的渲染器
       // effect(() => {
@@ -97,21 +97,61 @@
       // }, 1000)
 
       // 文本节点和注释节点
+      // effect(() => {
+      //   renderer.render(
+      //     {
+      //       type: 'div',
+      //       children: [
+      //         { type: Shape.Text, children: '文本节点(打开控制台查看注释节点)' },
+      //         {
+      //           type: Shape.Comment,
+      //           children: '我是注释节点',
+      //         },
+      //       ],
+      //     },
+      //     document.getElementById('app')
+      //   )
+      // })
+
+      // Fragment
       effect(() => {
         renderer.render(
           {
-            type: 'div',
+            type: 'ul',
             children: [
-              { type: Text, children: '文本节点(打开控制台查看注释节点)' },
               {
-                type: Comment,
-                children: '我是注释节点',
+                type: Shape.Fragment,
+                children: [
+                  { type: 'li', children: '1' },
+                  { type: 'li', children: '2' },
+                  { type: 'li', children: '3' },
+                ],
               },
             ],
           },
           document.getElementById('app')
         )
       })
+      setTimeout(() => {
+        effect(() => {
+          renderer.render(
+            {
+              type: 'ul',
+              children: [
+                {
+                  type: Shape.Fragment,
+                  children: [
+                    { type: 'li', children: '2' },
+                    { type: 'li', children: '4' },
+                    { type: 'li', children: '6' },
+                  ],
+                },
+              ],
+            },
+            document.getElementById('app')
+          )
+        })
+      }, 1000)
     </script>
   </body>
 </html>

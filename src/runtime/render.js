@@ -1,13 +1,5 @@
 import { isArray, isObject, isString } from '../utils'
-
-/**
- * 文本节点
- */
-export const Text = Symbol()
-/**
- * 注释节点
- */
-export const Comment = Symbol()
+import { Shape } from './vnode'
 function shouldSetAsProps(el, key) {
   // 特殊处理
   if (key === 'form' && el.tagName === 'INPUT') return false
@@ -156,7 +148,7 @@ export function createRenderer(options = browserOptions) {
       }
     } else if (isObject(type)) {
       // TODO 更新组件
-    } else if (type === Text) {
+    } else if (type === Shape.Text) {
       // 文本节点
       if (!n1) {
         // 没有旧节点，挂载
@@ -169,7 +161,7 @@ export function createRenderer(options = browserOptions) {
           setText(el, n2.children)
         }
       }
-    } else if (type === Comment) {
+    } else if (type === Shape.Comment) {
       // 注释节点
       if (!n1) {
         const el = (n2.el = createComment(n2.children))
@@ -179,6 +171,15 @@ export function createRenderer(options = browserOptions) {
         if ((n2, children !== n1.children)) {
           setText(el, n2.children)
         }
+      }
+    } else if (type === Shape.Fragment) {
+      // Fragment 节点
+      if (!n1) {
+        // 无旧节点，直接挂载F
+        n2.children.forEach(c => patch(null, c, container))
+      } else {
+        // 新旧都有，更新
+        patchChildren(n1, n2, container)
       }
     } else {
       // TODO 更新其他类型的 vnode
@@ -281,6 +282,10 @@ export function createRenderer(options = browserOptions) {
   }
 
   function unmount(vnode) {
+    if (vnode.type === Shape.Fragment) {
+      vnode.children.forEach(c => unmount(c))
+      return
+    }
     const parent = vnode.el.parentNode
     parent.removeChild(vnode.el)
   }
