@@ -17,7 +17,7 @@ const browserOptions = {
   },
   // 在给定的 parent 下添加指定的元素
   insert(el, parent, anchor = null) {
-    parent.appendChild(el, anchor)
+    parent.insertBefore(el, anchor)
   },
   // 格式化 classNames
   // class: 'foo bar'
@@ -131,7 +131,7 @@ export function createRenderer(options = browserOptions) {
    * @param {VNode} n2 新 vnode
    * @param {Element} container 挂载的目标节点
    */
-  function patch(n1, n2, container) {
+  function patch(n1, n2, container, anchor) {
     // 新旧节点类型不同 则直接卸载旧节点
     if (n1 && n1.type !== n2.type) {
       unmount(n1)
@@ -141,7 +141,7 @@ export function createRenderer(options = browserOptions) {
     if (isString(type)) {
       if (!n1) {
         // 挂载节点
-        mountElement(n2, container)
+        mountElement(n2, container, anchor)
       } else {
         // 更新节点
         patchElement(n1, n2)
@@ -186,7 +186,7 @@ export function createRenderer(options = browserOptions) {
     }
   }
 
-  function mountElement(vnode, container) {
+  function mountElement(vnode, container, anchor) {
     // 创建元素
     const el = (vnode.el = createElement(vnode.type))
     if (isString(vnode.children)) {
@@ -211,7 +211,7 @@ export function createRenderer(options = browserOptions) {
     }
 
     // 在给定的 parent 下添加指定的元素
-    insert(el, container)
+    insert(el, container, anchor)
   }
 
   /**
@@ -259,8 +259,61 @@ export function createRenderer(options = browserOptions) {
       // 新 children 类型为 Array
       if (isArray(n1.children)) {
         // TODO Diff 算法
-        n1.children.forEach(c => unmount(c))
-        n2.children.forEach(c => patch(null, c, container))
+        /**
+         * 简单 Diff 算法 ⬇️
+         */
+        const oldChildren = n1.children
+        const newChildren = n2.children
+        let lastIndex = 0
+        for (let i = 0; i < newChildren.length; i++) {
+          const newVnode = newChildren[i]
+          let find = false
+          let j = 0
+          for (j; j < oldChildren.length; j++) {
+            const oldVnode = oldChildren[j]
+            if (newVnode.key === oldVnode.key) {
+              // 找到需要移动的元素
+              find = true
+              // 更新 DOM 的值
+              patch(oldVnode, newVnode, container)
+              if (j < lastIndex) {
+                // 需要移动
+                const preVnode = newChildren[i - 1]
+                if (preVnode) {
+                  // 锚点 nextSibling 返回元素节点后的兄弟节点，就往这个兄弟节点前面插入
+                  const anchor = preVnode.el.nextSibliing
+                  insert(newVnode.el, container, anchor)
+                }
+              } else {
+                lastIndex = j
+              }
+            }
+          }
+          if (!find) {
+            // 未找到可复用，那就挂载
+            // 也是挂载到最新节点的后面
+            const preVnode = newChildren[i - 1]
+            let anchor = null
+            if (preVnode) {
+              anchor = preVnode.el.nextSibliing
+            } else {
+              anchor = container.firstChild
+            }
+            patch(null, newVnode, container, anchor)
+          }
+          // 移除不存在的元素
+          for (let i = 0; i < oldChildren.length; i++) {
+            const oldVnode = oldChildren[i]
+            const has = newChildren.find(vnode => vnode.key === oldVnode.key)
+            if (!has) {
+              // 如果没有找到相同的节点，则移除
+              unmount(oldVnode)
+            }
+          }
+        }
+        /**
+         * 简单 Diff 算法 ⬆️
+         */
       } else {
         // 旧节点要么是文本要么为空
         // 清空

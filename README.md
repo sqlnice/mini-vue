@@ -228,25 +228,25 @@ class: ['foo', { bar: true }]
 
 🟥 **style 的处理**
 
-与 class 类似
+与 `class` 类似
 
 ✅ **卸载操作**
 
-把 el 和 vnode 绑定起来，更新时如果无 新 vnode，则卸载
+把 `el` 和 `vnode` 绑定起来，更新时如果无新 `vnode` ，则卸载
 
-把卸载函数封装起来，因为后面要 清除 el 事件、调用组件的生命周期等
+把卸载函数封装起来，因为后面要清除 `el` 事件、调用组件的生命周期等
 
 ✅ **区分 vnode 的类型**
 
-在更新时判断 vnode.type 做不同的 patch
+在更新时判断 `vnode.type` 做不同的 `patch`
 
 ✅ **事件的处理**
 
-约束在 props 中以 on 开头的都算作事件
+约束在 `props` 中以 `on` 开头的都算作事件
 
-伪造一个事件处理函数 invoker，将 invoker 绑定到 addEventListener 上。在每次更新事件时更新 invoker 的 value 即可
+伪造一个事件处理函数 `invoker` ，将 `invoker` 绑定到 `addEventListener` 上。在每次更新事件时更新 `invoker` 的 `value` 即可
 
-使用 invoker 既可以提升性能也可以解决事件冒泡与事件更新直接相互影响的问题( 🍓 **invoker 相关代码极其巧妙，可以品尝一下** )
+使用 `invoker` 既可以提升性能也可以解决事件冒泡与事件更新直接相互影响的问题( 🍓 **invoker 相关代码极其巧妙，可以品尝一下** )
 
 ✅ **事件冒泡与更新时机问题**
 
@@ -254,42 +254,49 @@ class: ['foo', { bar: true }]
 
 所以只要屏蔽绑定事件晚于事件触发时间的事件处理函数即可：
 
-在绑定时使用 performance.now() 来记录绑定时间 (**记录从页面初始化完成到绑定时所经过的的时长，精度可达微秒级**) ，
+在绑定时使用 `performance.now()` 来记录绑定时间 (**记录从页面初始化完成到绑定时所经过的的时长，精度可达微秒级**) ，
 
-在触发时使用 e.timeStamp 来获取触发时间 (**记录从页面初始化完成到用户点击的那一刻所经过的时长**) ，比较两者时间即可
+在触发时使用 `e.timeStamp` 来获取触发时间 (**记录从页面初始化完成到用户点击的那一刻所经过的时长**) ，比较两者时间即可
 
 ✅ **更新子节点**
 
-1️⃣ 根据新旧节点更新 props
+1️⃣ 根据新旧节点更新 `props`
 
-2️⃣ 更新 children
+2️⃣ 更新 `children`
 
-- 新 children 类型为 String
+- 新 `children` 类型为 `String`
 
-  旧 children 类型为 Array ：遍历旧节点卸载后替换
-  旧 children 类型为 String：直接替换
-  旧 children 类型为 空 ：直接替换
+  旧 `children` 类型为 `Array` ：遍历旧节点卸载后替换
 
-- 新 children 类型为 Array
+  旧 `children` 类型为 `String`：直接替换
 
-  旧 children 类型为 Array ：**Diff 算法**
-  旧 children 类型为 String：直接替换
-  旧 children 类型为 空 ：直接替换
+  旧 `children` 类型为 空 ：直接替换
 
-- 新 children 类型为 空
-  旧 children 类型为 Array ：遍历旧节点卸载
-  旧 children 类型为 String：清空
-  旧 children 类型为 空 ：都为空，什么也不做
+- 新 `children` 类型为 `Array`
+
+  旧 `children` 类型为 `Array` ：**Diff 算法**
+
+  旧 `children` 类型为 `String`：直接替换
+
+  旧 `children` 类型为 空 ：直接替换
+
+- 新 `children` 类型为 空
+
+  旧 `children` 类型为 `Array` ：遍历旧节点卸载
+
+  旧 `children` 类型为 `String`：清空
+
+  旧 `children` 类型为 空 ：都为空，什么也不做
 
 ✅ **文本节点和注释节点**
 
-用 Symbol() 增加文本和注释节点的类型，在 patch 阶段做判断。对于使用到的 DOM 操作封装起来
+用 `Symbol()` 增加文本和注释节点的类型，在 `patch` 阶段做判断。对于使用到的 `DOM` 操作封装起来
 
 ✅ **Fragment**
 
 - 为什么存在？
 
-Vue.js 2 中必须且只有一个根节点，所以封装 option 这样的组件就只能外面加一层 template
+`Vue.js 2` 中必须且只有一个根节点，所以封装 `option` 这样的组件就只能外面加一层 `template`
 
 ```js
 <template>
@@ -305,31 +312,90 @@ Vue.js 2 中必须且只有一个根节点，所以封装 option 这样的组件
  <Li v-for="item in list">
 ```
 
-用 Symbol() 增加 Fragment 的类型，在 patch 阶段做判断
+用 `Symbol()` 增加 `Fragment` 的类型，在 `patch` 阶段做判断
 
-- 旧 vnode 不存在
+- 旧 `vnode` 不存在
 
-  只需将 Fragment 的 children 逐个挂载
+  只需将 `Fragment` 的 `children` 逐个挂载
 
 - 存在
 
-  只需更新 Fragment 的 children 即可
+  只需更新 `Fragment` 的 `children` 即可
 
-📢 unmount 函数也要支持对 Fragment 类型的处理
+📢 `unmount` 函数也要支持对 `Fragment` 类型的处理
 
 ## ⚛️ 简单 Diff 算法
 
-🟥 **减少 DOM 操作的性能开销**
+```js
+const oldVnode = [
+  {
+    type: 'p',
+    key: 1,
+    children: '1',
+  },
+  {
+    type: 'p',
+    key: 2,
+    children: '2',
+  },
+  {
+    type: 'p',
+    key: 3,
+    children: '3',
+  },
+]
 
-🟥 **DOM 复用与 key 的作用**
+const newVnode = [
+  {
+    type: 'p',
+    key: 3,
+    children: '3',
+  },
+  {
+    type: 'p',
+    key: 1,
+    children: '2',
+  },
+  {
+    type: 'p',
+    key: 2,
+    children: '2',
+  },
+]
+```
 
-🟥 **找到需要移动的元素**
+✅ **减少 DOM 操作的性能开销**
 
-🟥 **如何移动元素**
+不要重复的销毁和创建 `DOM` ，要找到可以复用的 `DOM` 节点
 
-🟥 **添加新元素**
+✅ **DOM 复用与 key 的作用**
 
-🟥 **移除不存在的元素**
+用 `key` 是否相等来代表这个 `DOM` 可以复用
+
+循环新节点，在旧节点中找到 `key` 相同的节点，就代表可以此旧节点可以复用。
+
+- 如果 `key` 相同，则 `patch` ，更新内容
+
+✅ **找到需要移动的元素**
+
+在循环开始前定义 `lastIndex`
+
+- 每次循环如果 `index < lastIndex` ，说明此节点需要移动
+- 否则 `lastIndex = index`
+
+✅ **如何移动元素**
+
+找到上一个节点，如果上一个节点存在，则调用 `insert`
+
+✅ **添加新元素**
+
+在循环新节点时，每层都定义 `find = false`
+
+如果找到 `key` 相等的则说明有可以复用的节点， `find = true` 。否则执行 `patch` 挂载
+
+✅ **移除不存在的元素**
+
+新节点循环结束后，单独循环旧节点，如果找不到 `key` 相等的，说明此旧节点不需要复用，执行卸载操作
 
 ## ⚛️ 双端 Diff 算法
 
