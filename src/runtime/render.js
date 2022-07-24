@@ -261,59 +261,9 @@ export function createRenderer(options = browserOptions) {
         // TODO Diff 算法
         /**
          * 简单 Diff 算法 ⬇️
+         * 根据 key 来寻找可复用的 DOM，并且移动
          */
-        const oldChildren = n1.children
-        const newChildren = n2.children
-        let lastIndex = 0
-        for (let i = 0; i < newChildren.length; i++) {
-          const newVnode = newChildren[i]
-          let find = false
-          let j = 0
-          for (j; j < oldChildren.length; j++) {
-            const oldVnode = oldChildren[j]
-            if (newVnode.key === oldVnode.key) {
-              // 找到需要移动的元素
-              find = true
-              // 更新 DOM 的值
-              patch(oldVnode, newVnode, container)
-              if (j < lastIndex) {
-                // 需要移动
-                const preVnode = newChildren[i - 1]
-                if (preVnode) {
-                  // 锚点 nextSibling 返回元素节点后的兄弟节点，就往这个兄弟节点前面插入
-                  const anchor = preVnode.el.nextSibliing
-                  insert(newVnode.el, container, anchor)
-                }
-              } else {
-                lastIndex = j
-              }
-            }
-          }
-          if (!find) {
-            // 未找到可复用，那就挂载
-            // 也是挂载到最新节点的后面
-            const preVnode = newChildren[i - 1]
-            let anchor = null
-            if (preVnode) {
-              anchor = preVnode.el.nextSibliing
-            } else {
-              anchor = container.firstChild
-            }
-            patch(null, newVnode, container, anchor)
-          }
-          // 移除不存在的元素
-          for (let i = 0; i < oldChildren.length; i++) {
-            const oldVnode = oldChildren[i]
-            const has = newChildren.find(vnode => vnode.key === oldVnode.key)
-            if (!has) {
-              // 如果没有找到相同的节点，则移除
-              unmount(oldVnode)
-            }
-          }
-        }
-        /**
-         * 简单 Diff 算法 ⬆️
-         */
+        patchSimpleChildren(n1, n2, container)
       } else {
         // 旧节点要么是文本要么为空
         // 清空
@@ -331,6 +281,58 @@ export function createRenderer(options = browserOptions) {
         setElementText(container, '')
       }
       // 旧 children 类型为 空 ：都为空，什么也不做
+    }
+  }
+
+  function patchSimpleChildren() {
+    const oldChildren = n1.children
+    const newChildren = n2.children
+    let lastIndex = 0
+    for (let i = 0; i < newChildren.length; i++) {
+      const newVnode = newChildren[i]
+      let find = false
+      let j = 0
+      for (j; j < oldChildren.length; j++) {
+        const oldVnode = oldChildren[j]
+        if (newVnode.key === oldVnode.key) {
+          // 找到需要移动的元素
+          find = true
+          // 更新 DOM 的值
+          patch(oldVnode, newVnode, container)
+          if (j < lastIndex) {
+            // 需要移动
+            const preVnode = newChildren[i - 1]
+            if (preVnode) {
+              // 锚点 nextSibling 返回元素节点后的兄弟节点，就往这个兄弟节点前面插入
+              const anchor = preVnode.el.nextSibliing
+              insert(newVnode.el, container, anchor)
+            }
+          } else {
+            lastIndex = j
+          }
+        }
+      }
+      if (!find) {
+        // 未找到可复用，那就挂载
+        // 也是挂载到最新节点的后面
+        const preVnode = newChildren[i - 1]
+        let anchor = null
+        if (preVnode) {
+          anchor = preVnode.el.nextSibliing
+        } else {
+          anchor = container.firstChild
+        }
+        patch(null, newVnode, container, anchor)
+      }
+      // 移除不存在的元素
+      for (let i = 0; i < oldChildren.length; i++) {
+        const oldVnode = oldChildren[i]
+        const has = newChildren.find(vnode => vnode.key === oldVnode.key)
+        if (!has) {
+          // 如果没有找到相同的节点，则移除
+          unmount(oldVnode)
+        }
+      }
     }
   }
 
