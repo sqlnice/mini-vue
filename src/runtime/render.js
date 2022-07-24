@@ -259,11 +259,11 @@ export function createRenderer(options = browserOptions) {
       // 新 children 类型为 Array
       if (isArray(n1.children)) {
         // TODO Diff 算法
-        /**
-         * 简单 Diff 算法 ⬇️
-         * 根据 key 来寻找可复用的 DOM，并且移动
-         */
-        patchSimpleChildren(n1, n2, container)
+        // 简单 Diff 算法 ⬇️
+        // patchSimpleChildren(n1, n2, container)
+
+        // 双端 Diff 算法 ⬇️
+        patchKeyedChildren(n1, n2, container)
       } else {
         // 旧节点要么是文本要么为空
         // 清空
@@ -284,6 +284,85 @@ export function createRenderer(options = browserOptions) {
     }
   }
 
+  /**
+   * 双端 Diff 算法
+   * 对新旧两组子节点的两个端点进行比较的算法
+   */
+  function patchKeyedChildren(n1, n2, container) {
+    const oldChildren = n1.children
+    const newChildren = n2.children
+
+    // 四个索引值
+    let oldStartIdx = 0
+    let oldEndIdx = oldChildren.length - 1
+    let newStartIdx = 0
+    let newEndIdx = newChildren.length - 1
+
+    // 四个索引指向的 vnode 节点
+    let oldStartVNode = oldChildren[oldStartIdx]
+    let oldEndVNode = oldChildren[oldEndIdx]
+    let newStartVNode = newChildren[newStartIdx]
+    let newEndVNode = newChildren[newEndIdx]
+
+    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+      if (oldStartVNode.key === newStartVNode.key) {
+        // 新旧头部节点可复用
+        patch(oldStartVNode, newStartVNode, container)
+        oldStartVNode = oldChildren[++oldStartIdx]
+        newStartVNode = newChildren[++newStartIdx]
+      } else if (oldEndVNode.key === newEndVNode.key) {
+        // 新旧尾部节点可复用
+        patch(oldEndVNode, newEndVNode, container)
+        oldEndVNode = oldChildren[--oldEndIdx]
+        newEndVNode = newChildren[--newEndIdx]
+      } else if (oldStartVNode.key === newEndVNode.key) {
+        // 新尾部节点与旧头部节点可复用
+        patch(oldStartVNode, newEndVNode, container)
+        insert(oldStartVNode.el, container, oldEndVNode.el.nextSibliing)
+        oldStartVNode = oldChildren[++oldStartIdx]
+        newEndVNode = newChildren[--newEndIdx]
+      } else if (newStartVNode.key === oldEndVNode.key) {
+        // 新头部节点与旧尾部节点可复用
+        patch(oldEndVNode, newStartVNode, container)
+        insert(oldEndVNode.el, container, oldStartVNode.el)
+        oldEndVNode = oldChildren[--oldEndIdx]
+        newStartVNode = newChildren[++newStartIdx]
+      } else {
+        // 找到遗漏的节点索引
+        const idxInOld = oldChildren.findIndex(vnode => vnode.key === newStartVNode.key)
+        if (idxInOld > 0) {
+          // 要移动的节点
+          const vnodeToMove = oldChildren[idxInOld]
+          patch(vnodeToMove, newStartVNode, container)
+          // 将 vnodeToMove.el 移动到头部节点 oldStartVNode.el 之前
+          insert(vnodeToMove.el, container, oldStartVNode.el)
+          oldChildren[idxInOld] = undefined
+        } else {
+          // 添加新元素
+          patch(null, newStartVNode, container, oldStartVNode.el)
+        }
+        // 更新索引
+        newStartVNode = newChildren[++newStartIdx]
+      }
+    }
+    // 添加新元素
+    if (oldEndIdx < oldStartIdx && newStartIdx <= newEndIdx) {
+      for (let i = newStartIdx; i < newEndIdx; i++) {
+        const anchor = newChildren[newEndIdx + 1] ? newChildren[newEndIdx + 1].el : null
+        patch(null, newChildren[i], container, anchor)
+      }
+    } else if (oldStartIdx <= oldEndIdx && newStartIdx > newEndIdx) {
+      // 移除不存在的元素
+      for (let i = oldStartIdx; i < oldEndIdx; i++) {
+        unmount(oldChildren[i])
+      }
+    }
+  }
+
+  /**
+   * 简单 Diff 算法
+   * 根据 key 来寻找可复用的 DOM，并且移动
+   */
   function patchSimpleChildren() {
     const oldChildren = n1.children
     const newChildren = n2.children
