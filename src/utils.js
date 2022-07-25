@@ -14,5 +14,7 @@ export function isFunction(target) {
   return typeof target === 'function'
 }
 export function hasChanged(oldValue, newValue) {
-  return oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
+  return (
+    oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
+  )
 }

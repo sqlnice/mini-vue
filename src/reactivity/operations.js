@@ -2,5 +2,5 @@ export const TriggerOpTypes = {
   SET: 'set',
   ADD: 'add',
   DELETE: 'delete',
-  CLEAR: 'clear',
+  CLEAR: 'clear'
 }

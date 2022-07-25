@@ -1,4 +1,5 @@
 import { effect } from './effect'
+
 export function watch(source, cb, options = {}) {
   let getter
   if (typeof source === 'function') {
@@ -7,7 +8,8 @@ export function watch(source, cb, options = {}) {
     // 递归读取
     getter = () => traverse(source)
   }
-  let oldValue, newValue
+  let oldValue
+  let newValue
 
   // 用来存储用户注册的过期回调
   let cleanup
@@ -36,7 +38,7 @@ export function watch(source, cb, options = {}) {
         job() // 'sync'
       }
       // pre 涉及到组件更新，暂时无法模拟
-    },
+    }
   })
 
   if (options.immediate) {

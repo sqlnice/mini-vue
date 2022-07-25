@@ -4,9 +4,10 @@ import { TriggerOpTypes } from './operations'
 
 const proxyMap = new WeakMap()
 // 用于拦截 for...in 操作时，关联副作用函数
-export const ITERATE_KEY = Symbol()
+export const ITERATE_KEY = Symbol('ITERATE_KEY')
 
 const arrayInstrumentations = {}
+
 ;['includes', 'indexOf', 'lastIndexOf'].forEach(method => {
   const originMethod = Array.prototype[method]
   arrayInstrumentations[method] = function (...args) {
@@ -24,7 +25,7 @@ export let shouldTrack = true
   const originMethod = Array.prototype[method]
   arrayInstrumentations[method] = function (...args) {
     shouldTrack = false
-    let res = originMethod.apply(this, args)
+    const res = originMethod.apply(this, args)
     shouldTrack = true
     return res
   }
@@ -43,7 +44,10 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
     get(target, key, receiver) {
       if (key === '__isReactive') return true
       if (key === 'raw') return target
-      if (isArray(target) && arrayInstrumentations.hasOwnProperty(key)) {
+      if (
+        isArray(target) &&
+        Object.prototype.hasOwnProperty.call(arrayInstrumentations)(key)
+      ) {
         return Reflect.get(arrayInstrumentations, key, receiver)
       }
 
@@ -114,7 +118,7 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
         trigger(target, key, TriggerOpTypes.DELETE)
       }
       return res
-    },
+    }
   })
   proxyMap.set(obj, proxy)
   return proxy

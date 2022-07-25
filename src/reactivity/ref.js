@@ -10,7 +10,7 @@ export function toRef(obj, key) {
     // 设置值
     set value(val) {
       obj[key] = val
-    },
+    }
   }
   Object.defineProperty(wrapper, '__v_isRef', { value: true })
   return wrapper
@@ -38,7 +38,7 @@ export function proxyRefs(target) {
         return true
       }
       return Reflect.set(target, key, newValue, recivier)
-    },
+    }
   })
 }
 

@@ -2,10 +2,10 @@ import { effect, track, trigger } from './effect'
 import { isFunction } from '../utils'
 
 export function computed(getterOrOption) {
-  let getter,
-    setter = () => {
-      console.warn('computed is readonly')
-    }
+  let getter
+  let setter = () => {
+    console.warn('computed is readonly')
+  }
   if (isFunction(getterOrOption)) {
     getter = getterOrOption
   } else {
@@ -29,7 +29,7 @@ class ComputedImpl {
           // 触发更新
           trigger(this, 'value')
         }
-      },
+      }
     })
   }
 

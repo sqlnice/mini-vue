@@ -19,19 +19,19 @@
           {
             type: 'p',
             key: 1,
-            children: '1',
+            children: '1'
           },
           {
             type: 'p',
             key: 2,
-            children: '2',
+            children: '2'
           },
           {
             type: 'p',
             key: 3,
-            children: '3',
-          },
-        ],
+            children: '3'
+          }
+        ]
       }
 
       const newVnode = {
@@ -40,19 +40,19 @@
           {
             type: 'p',
             key: 3,
-            children: '新3',
+            children: '新3'
           },
           {
             type: 'p',
             key: 1,
-            children: '新1',
+            children: '新1'
           },
           {
             type: 'p',
             key: 2,
-            children: '新2',
-          },
-        ],
+            children: '新2'
+          }
+        ]
       }
       effect(() => {
         renderer.render(oldVnode, document.getElementById('app'))

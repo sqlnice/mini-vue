@@ -11,11 +11,12 @@ import {
   computed,
   jobQueue,
   flushJob,
-  watch,
+  watch
 } from './reactivity/index.js'
 
 import { createRenderer, h, Shape } from './runtime/index.js'
-export default MiniVue = {
+
+export default {
   reactive,
   shallowReactive,
   readonly,
@@ -31,5 +32,5 @@ export default MiniVue = {
   watch,
   createRenderer,
   h,
-  Shape,
+  Shape
 }
