@@ -362,7 +362,7 @@ export function createRenderer(options = browserOptions) {
       }
     } else if (oldStartIdx <= oldEndIdx && newStartIdx > newEndIdx) {
       // 移除不存在的元素
-      for (let i = oldStartIdx; i < oldEndIdx; i++) {
+      for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         unmount(oldChildren[i])
       }
     }
@@ -372,7 +372,7 @@ export function createRenderer(options = browserOptions) {
    * 简单 Diff 算法
    * 根据 key 来寻找可复用的 DOM，并且移动
    */
-  // function patchSimpleChildren() {
+  // function patchSimpleChildren(n1, n2, container) {
   //   const oldChildren = n1.children
   //   const newChildren = n2.children
   //   let lastIndex = 0
@@ -415,7 +415,7 @@ export function createRenderer(options = browserOptions) {
   //     // 移除不存在的元素
   //     for (let i = 0; i < oldChildren.length; i++) {
   //       const oldVnode = oldChildren[i]
-  //       const has = newChildren.find((vnode) => vnode.key === oldVnode.key)
+  //       const has = newChildren.find(vnode => vnode.key === oldVnode.key)
   //       if (!has) {
   //         // 如果没有找到相同的节点，则移除
   //         unmount(oldVnode)
@@ -430,7 +430,7 @@ export function createRenderer(options = browserOptions) {
       return
     }
     const parent = vnode.el.parentNode
-    parent.removeChild(vnode.el)
+    parent && parent.removeChild(vnode.el)
   }
 
   return { render }
