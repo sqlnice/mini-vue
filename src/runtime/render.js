@@ -95,7 +95,7 @@ const browserOptions = {
       // el.className 这种方式性能最优
       el.className = nextValue || ''
     } else {
-      if (shouldSetAsProps) {
+      if (shouldSetAsProps(el, key)) {
         const type = typeof el[key]
         if (type === 'boolean' && nextValue === '') {
           el[key] = true
