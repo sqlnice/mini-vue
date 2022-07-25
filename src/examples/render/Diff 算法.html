@@ -121,6 +121,51 @@
       // }, 1500)
 
       // 需要移除旧节点
+      // const oldVnode = {
+      //   type: 'div',
+      //   children: [
+      //     {
+      //       type: 'p',
+      //       key: 1,
+      //       children: '1'
+      //     },
+      //     {
+      //       type: 'p',
+      //       key: 2,
+      //       children: '2'
+      //     },
+      //     {
+      //       type: 'p',
+      //       key: 3,
+      //       children: '3'
+      //     }
+      //   ]
+      // }
+
+      // const newVnode = {
+      //   type: 'div',
+      //   children: [
+      //     {
+      //       type: 'p',
+      //       key: 1,
+      //       children: '新1'
+      //     },
+      //     {
+      //       type: 'p',
+      //       key: 3,
+      //       children: '新3'
+      //     }
+      //   ]
+      // }
+      // effect(() => {
+      //   renderer.render(oldVnode, document.getElementById('app'))
+      // })
+
+      // setTimeout(() => {
+      //   renderer.render(newVnode, document.getElementById('app'))
+      // }, 1500)
+
+      // 复杂的快速 Diff 算法
       const oldVnode = {
         type: 'div',
         children: [
@@ -138,6 +183,21 @@
             type: 'p',
             key: 3,
             children: '3'
+          },
+          {
+            type: 'p',
+            key: 4,
+            children: '4'
+          },
+          {
+            type: 'p',
+            key: 6,
+            children: '6'
+          },
+          {
+            type: 'p',
+            key: 5,
+            children: '5'
           }
         ]
       }
@@ -147,13 +207,33 @@
         children: [
           {
             type: 'p',
+            key: 1,
+            children: '新1'
+          },
+          {
+            type: 'p',
             key: 3,
             children: '新3'
           },
           {
             type: 'p',
-            key: 1,
-            children: '新1'
+            key: 4,
+            children: '新4'
+          },
+          {
+            type: 'p',
+            key: 2,
+            children: '新2'
+          },
+          {
+            type: 'p',
+            key: 7,
+            children: '新7'
+          },
+          {
+            type: 'p',
+            key: 5,
+            children: '新5'
           }
         ]
       }
