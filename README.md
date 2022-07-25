@@ -401,13 +401,44 @@ const newVnode = [
 
 🟥 **双端比较的原理**
 
+是一种对新旧两组子节点的两个端点进行比较的算法
+
+判断是否符合 while(oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) ，逐个进行下面四个条件分支
+
+- if(oldStartIdx.key === newStartIdx.key)
+
+新旧**头部节点**相同，只需要 patch 及更新索引
+
+- if(oldEndIdx.key === newEndIdx.key)
+
+新旧**尾部节点**相同，只需要 patch 及更新索引
+
+- if(oldStartIdx.key === newEndIdx.key)
+
+**新尾部节点**与**旧头部节点**相同，需要更新 patch、移动旧节点到 oldEndVnode.el.nextSibling 后、更新索引
+
+- if(oldEndIdx.key === newStartIdx.key)
+
+**新头部节点**与**旧尾部节点**相同，需要更新 patch、移动旧节点到 oldStartVnode.el 前、更新索引
+
 🟥 **双端比较的优势**
+
+可以减少对 DOM 移动的操作
 
 🟥 **非理想状况的处理方式**
 
+在旧节点中寻找 node.key === newStartVNode.key 的节点作为要移动的节点的索引 idxInOld
+
+接下来进行 patch、移动到 oldStartVNode.el 前、将 oldChildren[idxInOld] 置位 undefined、更新索引
+
 🟥 **添加新元素**
+在上一步基础上，增加 idxInOld 小于 0 ，也就是没找到的逻辑，也就是新增，调用 patch(null, newStartVNode, container, oldStartVNode.el)、更新索引
+
+并且在 while 结束后，还要考虑 oldEndIdx < oldStartIdx && newStartIdx <= newEndIdx 的情况，说明更新过程中有遗漏新节点，所以循环遗漏的新节点进行挂载
 
 🟥 **移除不存在的元素**
+
+在上一步的基础上，增加 newEndIdx < newStartIdx && oldStartIdx <= oldEndIdx 的情况，说明在更新过程中，有遗漏旧节点，说明应该进行卸载
 
 ## ⚛️ 快读 Diff 算法
 
