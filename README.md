@@ -482,6 +482,115 @@ const newVnode = [
 
 否则 s--
 
+✅ **最长递增子序列**
+
+```js
+// 动态规划 O(n^2)
+function lengthOfLIS(nums: number[]): number {
+  const dp = new Array(nums.length).fill(1)
+  let max = 1
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (nums[i] > nums[j]) {
+        dp[i] = Math.max(dp[j] + 1, dp[i])
+      }
+    }
+    max = Math.max(max, dp[i])
+  }
+
+  return max
+}
+// 贪心 O(n^2)
+// 保持局部递增，则全局递增
+function lengthOfLIS(nums: number[]): number {
+  const arr = [nums[0]]
+  for (let i = 1; i < nums.length; i++) {
+    // 比已保存的最后一个 小
+    if (nums[i] <= arr[arr.length - 1]) {
+      for (let j = 0; j < arr.length; j++) {
+        if (arr[j] >= nums[i]) {
+          arr[j] = nums[i]
+          break
+        }
+      }
+    } else {
+      arr.push(nums[i])
+    }
+  }
+  return arr.length
+}
+// 贪心 + 二分 O(nlogn)
+function lengthOfLIS(nums: number[]): number {
+  const arr = [nums[0]]
+  for (let i = 1; i < nums.length; i++) {
+    // 比已保存的最后一个 小
+    if (nums[i] <= arr[arr.length - 1]) {
+      let l = 0
+      let r = arr.length - 1
+      while (l <= r) {
+        const mid = Math.round((r + l) / 2)
+        if (arr[mid] < nums[i]) {
+          // 要找的数字在右半区
+          l = mid + 1
+        } else if (arr[mid] > nums[i]) {
+          // 要找的数字在左半区
+          r = mid - 1
+        } else {
+          // 找到这个数字了
+          l = mid
+          break
+        }
+      }
+      arr[l] = nums[i]
+    } else {
+      arr.push(nums[i])
+    }
+  }
+  return arr.length
+}
+
+// 适用于 Diff 算法的寻找最长子序列
+function getSequence(nums) {
+  let arr = []
+  let position = []
+  for (let i = 0; i < nums.length; i++) {
+    // 对需要挂载的 -1 做了处理
+    if (nums[i] === -1) {
+      continue
+    }
+    // arr[arr.length - 1]可能为undefined，此时nums[i] > undefined为false
+    if (nums[i] > arr[arr.length - 1]) {
+      arr.push(nums[i])
+      position.push(arr.length - 1)
+    } else {
+      let l = 0,
+        r = arr.length - 1
+      while (l <= r) {
+        let mid = ~~((l + r) / 2)
+        if (nums[i] > arr[mid]) {
+          l = mid + 1
+        } else if (nums[i] < arr[mid]) {
+          r = mid - 1
+        } else {
+          l = mid
+          break
+        }
+      }
+      arr[l] = nums[i]
+      position.push(l)
+    }
+  }
+  let cur = arr.length - 1
+  // 这里复用了arr，它本身已经没用了
+  for (let i = position.length - 1; i >= 0 && cur >= 0; i--) {
+    if (position[i] === cur) {
+      arr[cur--] = i
+    }
+  }
+  return arr
+}
+```
+
 ✅ **总结**
 
 快速 Diff 算法在实测中性能最优。它借鉴了文本 Diff 中的预处理思路，先处理新旧两组子节点中相同的前置节点和后置节点。当前置节点和后置节点全部处理完毕后，如果无法简单地通过挂载新节点或者卸载已经不存在的节点来完成更新，则需要根据节点的索引关系，构造出一个最长递增子序列。最长递增子序列所指向的节点即为不需要移动的节点
