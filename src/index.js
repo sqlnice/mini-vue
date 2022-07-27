@@ -9,12 +9,10 @@ import {
   toRefs,
   proxyRefs,
   computed,
-  jobQueue,
-  flushJob,
   watch
 } from './reactivity/index.js'
 
-import { createRenderer, h, Shape } from './runtime/index.js'
+import { createRenderer, h, Shape, queueJob } from './runtime/index.js'
 
 export default {
   reactive,
@@ -27,8 +25,7 @@ export default {
   toRefs,
   proxyRefs,
   computed,
-  jobQueue,
-  flushJob,
+  queueJob,
   watch,
   createRenderer,
   h,

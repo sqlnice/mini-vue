@@ -1,4 +1,4 @@
 import { createRenderer } from './render'
 import { h, Shape } from './vnode'
-
-export { createRenderer, h, Shape }
+import { queueJob } from './scheduler'
+export { createRenderer, h, Shape, queueJob }

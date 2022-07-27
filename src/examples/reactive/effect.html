@@ -10,7 +10,7 @@
   <body>
     <script src="../../../dist/mini-vue.js"></script>
     <script>
-      const { reactive, effect, flushJob } = MiniVue
+      const { reactive, effect, queueJob } = MiniVue
       const obj = {
         count: 0
       }
@@ -51,7 +51,7 @@
       // const observed = reactive(obj)
       // effect(() => console.log(observed.count), {
       //   scheduler(fn) {
-      //     flushJob()
+      //     queueJob()
       //   },
       // })
       // observed.count++

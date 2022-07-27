@@ -1,5 +1,5 @@
 export * from './reactive'
-export { effect, jobQueue, flushJob } from './effect'
+export { effect } from './effect'
 export * from './ref'
 export * from './computed'
 export * from './watch'
