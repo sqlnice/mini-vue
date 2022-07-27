@@ -12,7 +12,13 @@ import {
   watch
 } from './reactivity/index.js'
 
-import { createRenderer, h, Shape, queueJob } from './runtime/index.js'
+import {
+  createRenderer,
+  h,
+  Shape,
+  queueJob,
+  onMounted
+} from './runtime/index.js'
 
 export default {
   reactive,
@@ -26,6 +32,7 @@ export default {
   proxyRefs,
   computed,
   queueJob,
+  onMounted,
   watch,
   createRenderer,
   h,

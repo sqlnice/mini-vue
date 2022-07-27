@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>组件</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, h, effect, ref, reactive, Shape, onMounted } =
+        MiniVue
+      const renderer = createRenderer()
+      const MyComponet = {
+        name: '我是组件',
+        props: {
+          nameInProps: String
+        },
+        data() {
+          return {
+            nameInData: '我是 data 里面定义的'
+          }
+        },
+        created() {
+          console.log('触发 created 生命周期')
+        },
+        render() {
+          return {
+            type: 'div',
+            children: [
+              { type: 'header', children: [this.$slots.header()] },
+              { type: 'p', children: `props: ${this.nameInProps}` },
+              { type: 'p', children: `data:  ${this.nameInData}` },
+              { type: 'p', children: `setup:  ${this.nameInSetup}` }
+            ]
+          }
+        },
+        setup(props, context) {
+          context.emit('change')
+          onMounted(() => console.log('触发 setup 里面的 onMounted 生命周期'))
+          return { nameInSetup: '我是 setup 里面定义的' }
+        }
+      }
+      const CompVNode = {
+        type: MyComponet,
+        props: {
+          nameInProps: '我是 props 传进来的',
+          other: '其他',
+          onChange: () => console.log('我被子组件的 emit 触发啦')
+        },
+        children: {
+          header() {
+            return { type: 'div', children: '我是标题插槽' }
+          }
+        }
+      }
+      const CompVNode2 = {
+        type: MyComponet,
+        props: {
+          name: '父组件的名字2',
+          other: '其他'
+        }
+      }
+      effect(() => {
+        renderer.render(CompVNode, document.getElementById('app'))
+      })
+      // setTimeout(() => {
+      //   effect(() => {
+      //     renderer.render(CompVNode2, document.getElementById('app'))
+      //   })
+      // }, 500)
+    </script>
+  </body>
+</html>

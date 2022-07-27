@@ -1,6 +1,6 @@
 import { isArray, isObject, isString } from '../utils'
 import { Shape } from './vnode'
-
+import { mountComponent, patchComponent } from './component'
 function shouldSetAsProps(el, key) {
   // 特殊处理
   if (key === 'form' && el.tagName === 'INPUT') return false
@@ -143,6 +143,7 @@ export function createRenderer(options = browserOptions) {
       n1 = null
     }
     const { type } = n2
+    // Element
     if (isString(type)) {
       if (!n1) {
         // 挂载节点
@@ -152,7 +153,14 @@ export function createRenderer(options = browserOptions) {
         patchElement(n1, n2)
       }
     } else if (isObject(type)) {
-      // TODO 更新组件
+      // 组件
+      if (!n1) {
+        // 挂载组件
+        mountComponent(n2, container, anchor, patch)
+      } else {
+        // 更新组件
+        patchComponent(n1, n2, container, anchor)
+      }
     } else if (type === Shape.Text) {
       // 文本节点
       if (!n1) {
