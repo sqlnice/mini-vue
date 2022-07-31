@@ -10,7 +10,9 @@ import { LifecycleHooks } from './lifeCycle'
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
 export let currentInstance
 export const setCurrentInstance = instance => {
+  const prev = currentInstance
   currentInstance = instance
+  return prev
 }
 export const unsetCurrentInstance = () => {
   currentInstance = null
@@ -112,27 +114,23 @@ export function mountComponent(vnode, container, anchor, patch) {
     }
   }
 
-  const setupContext = { attrs, emit, slots }
-
-  // 设置 currentInstance
-  setCurrentInstance(instance)
-
-  // 执行 setup 函数，为了避免用户需改 props，使用 shallowReadonly 包裹
-  let setupResult =
-    setup && setup(shallowReadonly(instance.props), setupContext)
-
-  // 清除 currentInstance
-  unsetCurrentInstance()
-
   let setupState = null
-  if (typeof setupResult === 'function') {
-    // 返回了函数，作为 render 使用
-    if (render) console.warn('setup 函数返回渲染函数，render 选项将被忽略')
-    render = setupResult
-  } else {
-    // 作为数据状态赋值给 setupState
-    setupState = setupResult
+  if (setup) {
+    const setupContext = { attrs, emit, slots }
+    // 设置 currentInstance
+    const prevInstance = setCurrentInstance(instance)
+    // 执行 setup 函数，为了避免用户需改 props，使用 shallowReadonly 包裹
+    const setupResult = setup(shallowReadonly(instance.props), setupContext)
+    setCurrentInstance(prevInstance)
+    if (typeof setupResult === 'function') {
+      if (render) console.error('setup 函数返回渲染函数，render 选项将被忽略')
+      render = setupResult
+    } else {
+      // 作为数据状态赋值给 setupResult
+      setupState = setupResult
+    }
   }
+
   // 用于后续更新
   vnode.instance = instance
 
@@ -175,7 +173,7 @@ export function mountComponent(vnode, container, anchor, patch) {
   effect(
     () => {
       // 获取应该渲染的 vnode
-      const subTree = render.call(renderContext)
+      const subTree = render.call(renderContext, renderContext)
       if (!instance.isMounted) {
         // beforeMounte
         beforeMounte && beforeMounte.call(renderContext)

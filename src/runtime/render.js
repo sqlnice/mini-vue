@@ -1,4 +1,4 @@
-import { isArray, isObject, isString } from '../utils'
+import { isArray, isObject, isString, isFunction } from '../utils'
 import { Shape } from './vnode'
 import { mountComponent, patchComponent } from './component'
 function shouldSetAsProps(el, key) {
@@ -152,7 +152,7 @@ export function createRenderer(options = browserOptions) {
         // 更新节点
         patchElement(n1, n2)
       }
-    } else if (isObject(type)) {
+    } else if (isObject(type) || isFunction(type)) {
       // 组件
       if (!n1) {
         // 挂载组件
@@ -611,10 +611,13 @@ export function createRenderer(options = browserOptions) {
   function unmount(vnode) {
     if (vnode.type === Shape.Fragment) {
       vnode.children.forEach(c => unmount(c))
-      return
+    } else if (isObject(vnode.type)) {
+      // 组件，实质是卸载组件渲染的内容
+      unmount(vnode.instance.subTree)
+    } else {
+      const parent = vnode.el.parentNode
+      parent && parent.removeChild(vnode.el)
     }
-    const parent = vnode.el.parentNode
-    parent && parent.removeChild(vnode.el)
   }
 
   return { render }

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>异步组件</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, effect, defineAsyncComponent } = MiniVue
+      const renderer = createRenderer()
+      let counter = 0
+      const MyComponent = {
+        name: 'MyComponent',
+        props: {
+          title: String
+        },
+        setup(props, { emit, slots }) {
+          return () => {
+            return {
+              type: 'div',
+              children: [
+                {
+                  type: defineAsyncComponent({
+                    loader: () =>
+                      new Promise((r, j) => {
+                        setTimeout(() => {
+                          counter > 2
+                            ? r({
+                                name: 'InnerComp',
+                                setup() {
+                                  return () => ({
+                                    type: 'span',
+                                    children: 'inner'
+                                  })
+                                }
+                              })
+                            : j('error...')
+                        }, 200)
+                      }),
+                    timeout: 0,
+                    errorComponent: {
+                      setup() {
+                        return () => {
+                          return { type: 'h2', children: 'Error - timeout' }
+                        }
+                      }
+                    },
+                    delay: 500,
+                    loadingComponent: {
+                      setup() {
+                        return () => {
+                          return { type: 'h2', children: 'Loading...' }
+                        }
+                      }
+                    },
+                    onError(retry, reject, retires) {
+                      counter = retires
+                      retry()
+                    }
+                  })
+                }
+              ]
+            }
+          }
+        }
+      }
+
+      const CompVNode = {
+        type: MyComponent
+      }
+      effect(() => {
+        renderer.render(CompVNode, document.getElementById('app'))
+      })
+    </script>
+  </body>
+</html>

@@ -17,7 +17,14 @@ import {
   h,
   Shape,
   queueJob,
-  onMounted
+  onBeforeMount,
+  onMounted,
+  onBeforeUpdate,
+  onUpdated,
+  onBeforeUnmount,
+  onUnmounted,
+  onServerPrefetch,
+  defineAsyncComponent
 } from './runtime/index.js'
 
 export default {
@@ -32,9 +39,16 @@ export default {
   proxyRefs,
   computed,
   queueJob,
+  onBeforeMount,
   onMounted,
+  onBeforeUpdate,
+  onUpdated,
+  onBeforeUnmount,
+  onUnmounted,
+  onServerPrefetch,
   watch,
   createRenderer,
   h,
-  Shape
+  Shape,
+  defineAsyncComponent
 }
