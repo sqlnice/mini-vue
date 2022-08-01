@@ -6,6 +6,7 @@ import {
 } from '../reactivity/index'
 import { queueJob } from './scheduler'
 import { LifecycleHooks } from './lifeCycle'
+import { isFunction } from '../utils'
 
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
 export let currentInstance
@@ -35,8 +36,15 @@ export function mountComponent(vnode, container, anchor, patch) {
   //  }
 
   // 获取组件的选项对象
-  const { type: componentOptions } = vnode
-
+  let { type: componentOptions } = vnode
+  // 函数式组件
+  const isFunctional = isFunction(componentOptions)
+  if (isFunctional) {
+    componentOptions = {
+      render: vnode.type,
+      props: vnode.type.props
+    }
+  }
   // componentOptions = {
   //   name: '我是组件',
   //   props: {},

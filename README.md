@@ -791,6 +791,39 @@ const AsyncComp = defineAsyncComponent({
 ```
 
 🟥 **函数式组件**
+
+使用
+
+```js
+function MyFuncComponent(props) {
+  return { type: 'h1', children: props.title }
+}
+MyFuncComponent.props = {
+  title: String
+}
+const CompVNode = {
+  type: MyFuncComponent,
+  props: { title: 'Title' }
+}
+effect(() => {
+  renderer.render(CompVNode, document.getElementById('app'))
+})
+```
+
+函数式组件和有状态组件基本一致，在 Vue.js 3 中，函数式组件改为上面的使用方法，所以我们只需要在 mountComponent 中判断 type 为 Function 时，重新组装一下 vnode.type
+
+```js
+// 获取组件的选项对象
+let { type: componentOptions } = vnode
+const isFunctional = isFunction(componentOptions)
+if (isFunctional) {
+  componentOptions = {
+    render: vnode.type,
+    props: vnode.type.props
+  }
+}
+```
+
 🟥 **总结**
 
 ## ⚛️ 内建组件和模块
@@ -799,3 +832,7 @@ const AsyncComp = defineAsyncComponent({
 🟥 **Teleport 组件的实现原理**
 🟥 **Transition 组件的实现原理**
 🟥 **总结**
+
+```
+
+```

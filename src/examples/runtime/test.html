@@ -751,40 +751,40 @@
   //   ]
   // }
 
-  setTimeout(() => {
-    renderer.render(
-      {
-        type: MyFuncComp,
-        props: {
-          title: 'A Small Title'
-        }
-      },
-      document.querySelector('#app')
-    )
-  }, 2000)
+  // setTimeout(() => {
+  //   renderer.render(
+  //     {
+  //       type: MyFuncComp,
+  //       props: {
+  //         title: 'A Small Title'
+  //       }
+  //     },
+  //     document.querySelector('#app')
+  //   )
+  // }, 2000)
 
-  function fetch() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject('err')
-      }, 1000)
-    })
-  }
+  // function fetch() {
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       reject('err')
+  //     }, 1000)
+  //   })
+  // }
 
-  function load(onError) {
-    const p = fetch()
-    return p.catch(err => {
-      return new Promise((resolve, reject) => {
-        const retry = () => resolve(load(onError))
-        onError(retry, reject)
-      })
-    })
-  }
+  // function load(onError) {
+  //   const p = fetch()
+  //   return p.catch(err => {
+  //     return new Promise((resolve, reject) => {
+  //       const retry = () => resolve(load(onError))
+  //       onError(retry, reject)
+  //     })
+  //   })
+  // }
 
-  load(retry => {
-    retry()
-    console.log(99)
-  }).then(res => {
-    console.log(res)
-  })
+  // load(retry => {
+  //   retry()
+  //   console.log(99)
+  // }).then(res => {
+  //   console.log(res)
+  // })
 </script>

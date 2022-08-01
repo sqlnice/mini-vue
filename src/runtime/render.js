@@ -53,8 +53,6 @@ const browserOptions = {
   // 处理 prop
   patchProps(el, key, prevValue, nextValue) {
     if (/^on/.test(key)) {
-      console.log('key:', key)
-      console.log('值:', nextValue)
       // 处理事件
       const name = key.slice(2).toLowerCase()
 
@@ -153,6 +151,8 @@ export function createRenderer(options = browserOptions) {
         patchElement(n1, n2)
       }
     } else if (isObject(type) || isFunction(type)) {
+      // type 是对象 有状态组件
+      // type 是函数 函数式组件
       // 组件
       if (!n1) {
         // 挂载组件

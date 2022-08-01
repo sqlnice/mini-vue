@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>函数式组件</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, effect, defineAsyncComponent } = MiniVue
+      const renderer = createRenderer()
+      function MyFuncComponent(props) {
+        return { type: 'h1', children: props.title }
+      }
+      MyFuncComponent.props = {
+        title: String
+      }
+      const CompVNode = {
+        type: MyFuncComponent,
+        props: { title: 'Title' }
+      }
+      effect(() => {
+        renderer.render(CompVNode, document.getElementById('app'))
+      })
+    </script>
+  </body>
+</html>
