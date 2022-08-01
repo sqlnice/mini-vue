@@ -24,7 +24,8 @@ import {
   onBeforeUnmount,
   onUnmounted,
   onServerPrefetch,
-  defineAsyncComponent
+  defineAsyncComponent,
+  KeepAlive
 } from './runtime/index.js'
 
 export default {
@@ -50,5 +51,6 @@ export default {
   createRenderer,
   h,
   Shape,
-  defineAsyncComponent
+  defineAsyncComponent,
+  KeepAlive
 }

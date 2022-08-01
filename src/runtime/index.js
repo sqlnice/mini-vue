@@ -11,6 +11,7 @@ import {
   onServerPrefetch
 } from './lifeCycle'
 import { defineAsyncComponent } from './apiAsyncComponentLoader'
+import { KeepAlive } from './components/KeepAlive'
 export {
   createRenderer,
   h,
@@ -23,5 +24,6 @@ export {
   onBeforeUnmount,
   onUnmounted,
   onServerPrefetch,
-  defineAsyncComponent
+  defineAsyncComponent,
+  KeepAlive
 }

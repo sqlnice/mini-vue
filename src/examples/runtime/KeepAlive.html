@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KeepAlive</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, effect, ref, KeepAlive } = MiniVue
+      const renderer = createRenderer()
+      const MyComponent = {
+        name: 'MyComponent',
+        props: {
+          title: String
+        },
+        setup(props, { emit, slots }) {
+          const counter = ref(0)
+          return () => {
+            return {
+              type: 'button',
+              props: {
+                onClick() {
+                  counter.value++
+                }
+              },
+              children: `count is ${counter.value}`
+            }
+          }
+        }
+      }
+
+      const CompVNode = {
+        type: KeepAlive,
+        children: {
+          default() {
+            return { type: MyComponent }
+          }
+        },
+        props: { exclude: /^My/ }
+      }
+      effect(() => {
+        renderer.render(CompVNode, document.getElementById('app'))
+      })
+      setTimeout(() => {
+        effect(() => {
+          renderer.render(null, document.getElementById('app'))
+        })
+      }, 1000)
+      setTimeout(() => {
+        effect(() => {
+          renderer.render(CompVNode, document.getElementById('app'))
+        })
+      }, 2000)
+    </script>
+  </body>
+</html>

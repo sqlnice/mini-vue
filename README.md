@@ -754,7 +754,7 @@ function render() {
 
 ## ⚛️ 异步组件与函数式组件
 
-🟥 **异步组件要解决的问题**
+✅ **异步组件要解决的问题**
 
 本质也是一个组件，返回 `setup` 或者 `render` ，指以异步的方式加载并渲染一个组件，这在代码分割、服务端下发组件等场景中尤为重要。异步组件的实现用户可以自定义实现，但整体实现比较复杂，考虑的边界情况也比较多，所以需要在框架层面为异步组件提供更好的封装与支持：
 
@@ -766,7 +766,7 @@ function render() {
 
 - 组件加载失败时，为用户提供重试的能力
 
-🟥 **异步组件的实现原理**
+✅ **异步组件的实现原理**
 
 ```js
 const LoadingComponent = {
@@ -790,7 +790,7 @@ const AsyncComp = defineAsyncComponent({
 })
 ```
 
-🟥 **函数式组件**
+✅ **函数式组件**
 
 使用
 
@@ -810,7 +810,7 @@ effect(() => {
 })
 ```
 
-函数式组件和有状态组件基本一致，在 Vue.js 3 中，函数式组件改为上面的使用方法，所以我们只需要在 mountComponent 中判断 type 为 Function 时，重新组装一下 vnode.type
+函数式组件和有状态组件基本一致，在 `Vue.js 3` 中，函数式组件改为上面的使用方法，所以我们只需要在 `mountComponent` 中判断 `type` 为 `Function` 时，重新组装一下 `vnode.type`
 
 ```js
 // 获取组件的选项对象
@@ -824,11 +824,22 @@ if (isFunctional) {
 }
 ```
 
-🟥 **总结**
-
 ## ⚛️ 内建组件和模块
 
-🟥 **KeepAlive 组件的实现原理**
+✅ **KeepAlive 组件的实现原理**
+
+本质为一个 `VNode` ，里面包含 `setup` 、 `_isKeepAlive` ，实现需要渲染器层面的支持。
+
+被 `KeepAlive` 包裹的组件成为“内部组件”，`KeepAlive` 会对“内部组件”进行操作并返回，主要操作是在“内部组件”的 `vnode` 对象上添加一些标记属性，以便渲染器能据此执行特定的逻辑。几个标记属性如下：
+
+- `shouldKeepAlive`: 在渲染器卸载时，如果遇到此属性则代表不是真的卸载，而是执行 `vnode.keepAliveInstance._deActivate` 方法完成搬运工作（隐藏起来）
+
+- `keepAliveInstacne`: 在 `unmount` 时，通过 `keepAliveInstance` 来访问 `_deActivate` 函数
+
+- `keptAlive`: 当“内部组件”需要重新渲染时，并不是真的渲染，而是会调用 `vnode.keepAliveInstance._activate` 将其激活
+
+支持根据规则进行缓存：定义 `include` 和 `exclude`，如果匹配到则不缓存
+
 🟥 **Teleport 组件的实现原理**
 🟥 **Transition 组件的实现原理**
 🟥 **总结**

@@ -155,8 +155,13 @@ export function createRenderer(options = browserOptions) {
       // type 是函数 函数式组件
       // 组件
       if (!n1) {
-        // 挂载组件
-        mountComponent(n2, container, anchor, patch)
+        // 如果组件已经被 KeepAlive，则调用激活方法，给他移入进来
+        if (n2.keptAlive) {
+          n2.keepAliveInstance._activate(n2, container, anchor)
+        } else {
+          // 挂载组件
+          mountComponent(n2, container, anchor, patch, options)
+        }
       } else {
         // 更新组件
         patchComponent(n1, n2, container, anchor)
@@ -612,8 +617,13 @@ export function createRenderer(options = browserOptions) {
     if (vnode.type === Shape.Fragment) {
       vnode.children.forEach(c => unmount(c))
     } else if (isObject(vnode.type)) {
-      // 组件，实质是卸载组件渲染的内容
-      unmount(vnode.instance.subTree)
+      if (vnode.shouldKeepAlive) {
+        // 如果组件已经被 KeepAlive，则调用失活方法，给他移走
+        vnode.keepAliveInstance._deActivate(vnode)
+      } else {
+        // 组件，实质是卸载组件渲染的内容
+        unmount(vnode.instance.subTree)
+      }
     } else {
       const parent = vnode.el.parentNode
       parent && parent.removeChild(vnode.el)

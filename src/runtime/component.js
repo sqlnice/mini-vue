@@ -25,7 +25,8 @@ export const unsetCurrentInstance = () => {
  * @param {*} anchor
  * @param {*} patch
  */
-export function mountComponent(vnode, container, anchor, patch) {
+export function mountComponent(vnode, container, anchor, patch, options) {
+  const { createElement, insert } = options
   //  vnode = {
   //  type: MyComponet,
   //  props: {},
@@ -100,9 +101,19 @@ export function mountComponent(vnode, container, anchor, patch) {
     attrs,
     isMounted: false,
     subTree: null,
-    slots
+    slots,
+    keepAliveCtx: null
   }
-
+  const isKeepAlive = vnode.type.__isKeepAlive
+  if (isKeepAlive) {
+    // 在 KeepAlive 实例上添加 keepAliveCtx
+    instance.keepAliveCtx = {
+      move(vnode, container, anchor) {
+        insert(vnode.component.subTree.el, container, anchor)
+      },
+      createElement
+    }
+  }
   /**
    * 处理 setup
    * setup 接收两个参数， props 和 setupContext
