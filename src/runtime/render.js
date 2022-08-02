@@ -150,6 +150,19 @@ export function createRenderer(options = browserOptions) {
         // 更新节点
         patchElement(n1, n2)
       }
+    } else if (isObject(type) && type.__isTeleport) {
+      // Teleport 组件，将渲染逻辑交给 Teleport
+      type.process(n1, n2, container, anchor, {
+        patch,
+        patchChildren,
+        move(vnode, container, anchor) {
+          insert(
+            vnode.component ? vnode.component.subTree.el : vnode.el,
+            container,
+            anchor
+          )
+        }
+      })
     } else if (isObject(type) || isFunction(type)) {
       // type 是对象 有状态组件
       // type 是函数 函数式组件
@@ -160,7 +173,10 @@ export function createRenderer(options = browserOptions) {
           n2.keepAliveInstance._activate(n2, container, anchor)
         } else {
           // 挂载组件
-          mountComponent(n2, container, anchor, patch, options)
+          mountComponent(n2, container, anchor, patch, {
+            createElement,
+            insert
+          })
         }
       } else {
         // 更新组件

@@ -25,7 +25,8 @@ import {
   onUnmounted,
   onServerPrefetch,
   defineAsyncComponent,
-  KeepAlive
+  KeepAlive,
+  Teleport
 } from './runtime/index.js'
 
 export default {
@@ -52,5 +53,6 @@ export default {
   h,
   Shape,
   defineAsyncComponent,
-  KeepAlive
+  KeepAlive,
+  Teleport
 }

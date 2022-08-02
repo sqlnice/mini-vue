@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teleport</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, effect, ref, Teleport } = MiniVue
+      const renderer = createRenderer()
+
+      const CompVNode = {
+        type: Teleport,
+        props: {
+          to: 'body'
+        },
+        children: [
+          { type: 'h1', children: 'Title' },
+          { type: 'p', children: 'Content' }
+        ]
+      }
+      effect(() => {
+        renderer.render(CompVNode, document.getElementById('app'))
+      })
+
+      const CompVNode2 = {
+        type: Teleport,
+        props: {
+          to: '#container'
+        },
+        children: [
+          { type: 'h1', children: 'A big Title' },
+          { type: 'p', children: 'a small content' }
+        ]
+      }
+
+      setTimeout(() => {
+        renderer.render(CompVNode2, document.querySelector('#app'))
+      }, 1000)
+    </script>
+  </body>
+</html>

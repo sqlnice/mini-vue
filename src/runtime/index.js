@@ -12,6 +12,7 @@ import {
 } from './lifeCycle'
 import { defineAsyncComponent } from './apiAsyncComponentLoader'
 import { KeepAlive } from './components/KeepAlive'
+import { Teleport } from './components/Teleport'
 export {
   createRenderer,
   h,
@@ -25,5 +26,6 @@ export {
   onUnmounted,
   onServerPrefetch,
   defineAsyncComponent,
-  KeepAlive
+  KeepAlive,
+  Teleport
 }

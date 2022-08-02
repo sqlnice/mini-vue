@@ -841,6 +841,34 @@ if (isFunctional) {
 支持根据规则进行缓存：定义 `include` 和 `exclude`，如果匹配到则不缓存
 
 🟥 **Teleport 组件的实现原理**
+
+Teleport 也需要渲染器支持，不过 Teleport 组件的渲染逻辑要从渲染器中分离出来，这么做有两个好处
+
+- 避免渲染器逻辑代码“膨胀”
+
+- 当用户没有使用 Teleport 组件时，可以有效利用 Tree-Shaking 使得构建包体积变小
+
+用户编写的模板
+
+```html
+<Teleport to="body">
+  <h1>Title</h1>
+  <p>Content</p>
+</Teleport>
+```
+
+会被编译为
+
+```js
+{
+  type:Teleport,
+  children:[
+    {type:'h1',children:'Tille'},
+    {type:'p',children:'Content'},
+  ]
+}
+```
+
 🟥 **Transition 组件的实现原理**
 🟥 **总结**
 
