@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transition</title>
+    <script src="../../../dist/mini-vue.js"></script>
+    <style>
+      .box {
+        width: 100px;
+        height: 100px;
+        background-color: red;
+      }
+
+      .fade-enter-from {
+        transform: translateX(-100px);
+      }
+
+      .fade-enter-end {
+        transform: translateX(0px);
+      }
+
+      .fade-enter-active {
+        transition: transform 1s ease-in-out;
+      }
+
+      .fade-leave-from {
+        transform: translateX(0px);
+      }
+
+      .fade-leave-to {
+        transform: translateX(-100px);
+      }
+
+      .fade-leave-active {
+        transition: transform 2s ease-in-out;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      // 原生动画
+      // const box = document.createElement('div')
+      // box.classList.add('box')
+      // box.classList.add('enter-active')
+      // box.classList.add('enter-from')
+
+      // document.body.appendChild(box)
+      // requestAnimationFrame(() => {
+      //   requestAnimationFrame(() => {
+      //     box.classList.remove('enter-from')
+      //     box.classList.add('enter-to')
+
+      //     box.addEventListener('transitionend', () => {
+      //       box.classList.remove('enter-active')
+      //       box.classList.remove('enter-to')
+      //     })
+      //   })
+      // })
+
+      // box.addEventListener('click', () => {
+      //   const performRemove = () => {
+      //     box.parentElement.removeChild(box)
+      //   }
+      //   box.classList.add('leave-active')
+      //   box.classList.add('leave-from')
+
+      //   // 强制 reflow
+      //   document.body.offsetHeight
+
+      //   requestAnimationFrame(() => {
+      //     requestAnimationFrame(() => {
+      //       box.classList.remove('leave-from')
+      //       box.classList.add('leave-to')
+
+      //       box.addEventListener('transitionend', () => {
+      //         box.classList.remove('leave-active')
+      //         box.classList.remove('leave-to')
+      //         performRemove()
+      //       })
+      //     })
+      //   })
+      // })
+      const { createRenderer, effect, ref, Transition, Shape } = MiniVue
+      const renderer = createRenderer()
+
+      const App = {
+        name: 'App',
+        setup() {
+          const toggle = ref(true)
+
+          setTimeout(() => {
+            toggle.value = false
+          }, 2000)
+
+          return () => {
+            return {
+              type: Transition,
+              props: { name: 'fade' },
+              children: {
+                default() {
+                  return toggle.value
+                    ? { type: 'div', props: { class: 'box' } }
+                    : { type: Shape.Text, children: '' }
+                }
+              }
+            }
+          }
+        }
+      }
+      effect(() => {
+        renderer.render({ type: App }, document.getElementById('app'))
+      })
+    </script>
+  </body>
+</html>

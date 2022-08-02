@@ -243,9 +243,15 @@ export function createRenderer(options = browserOptions) {
         }
       }
     }
-
+    const needTransition = vnode.transition
+    if (needTransition) {
+      vnode.transition.beforeEnter(el)
+    }
     // 在给定的 parent 下添加指定的元素
     insert(el, container, anchor)
+    if (needTransition) {
+      vnode.transition.enter(el)
+    }
   }
 
   /**
@@ -642,7 +648,15 @@ export function createRenderer(options = browserOptions) {
       }
     } else {
       const parent = vnode.el.parentNode
-      parent && parent.removeChild(vnode.el)
+      const needTransition = vnode.transition
+      if (parent) {
+        const performRemove = () => parent.removeChild(vnode.el)
+        if (needTransition) {
+          vnode.transition.leave(vnode.el, performRemove)
+        } else {
+          performRemove()
+        }
+      }
     }
   }
 

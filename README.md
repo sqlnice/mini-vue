@@ -842,11 +842,11 @@ if (isFunctional) {
 
 ✅ **Teleport 组件的实现原理**
 
-Teleport 也需要渲染器支持，不过 Teleport 组件的渲染逻辑要从渲染器中分离出来，这么做有两个好处
+`Teleport` 也需要渲染器支持，不过 `Teleport` 组件的渲染逻辑要从渲染器中分离出来，这么做有两个好处
 
 - 避免渲染器逻辑代码“膨胀”
 
-- 当用户没有使用 Teleport 组件时，可以有效利用 Tree-Shaking 使得构建包体积变小
+- 当用户没有使用 `Teleport` 组件时，可以有效利用 `Tree-Shaking` 使得构建包体积变小
 
 用户编写的模板
 
@@ -869,11 +869,37 @@ Teleport 也需要渲染器支持，不过 Teleport 组件的渲染逻辑要从�
 }
 ```
 
-所以我们需要在组件挂载时判断为 Teleport 组件，调用组件选项中定义的 process 函数将渲染控制权完全交接过去
+所以我们需要在组件挂载时判断为 `Teleport` 组件，调用组件选项中定义的 `process` 函数将渲染控制权完全交接过去
 
 🟥 **Transition 组件的实现原理**
-🟥 **总结**
 
+核心原理
+
+- 当 `DOM` 元素被挂载时，将动效附加到该 `DOM` 元素上
+
+- 当 `DOM` 元素被卸载时，不要立即卸载，而是等到附加到该 `DOM` 元素上的动效执行完毕后再卸载它
+
+用户编写的模板
+
+```html
+<Transition>
+  <h1>我是需要过渡的元素</h1>
+</Transition>
 ```
 
+会被编译为
+
+```js
+{
+  type: Transition,
+  children: {
+    default() {
+      return { type:'div', children: '我是需要过渡的元素'}
+    }
+  }
+}
 ```
+
+在特定的 `mountElement` 和 `unmount` 时机，调用 `vnode.transition.beforeEnter` 等函数，把控制权交给 `Transition` 组件
+
+`vnode.transition.beforeEnter` 函数做的也只是给 `DOM` 元素增加或者移除 `className`

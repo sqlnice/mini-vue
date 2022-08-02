@@ -26,7 +26,8 @@ import {
   onServerPrefetch,
   defineAsyncComponent,
   KeepAlive,
-  Teleport
+  Teleport,
+  Transition
 } from './runtime/index.js'
 
 export default {
@@ -54,5 +55,6 @@ export default {
   Shape,
   defineAsyncComponent,
   KeepAlive,
-  Teleport
+  Teleport,
+  Transition
 }

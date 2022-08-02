@@ -13,6 +13,7 @@ import {
 import { defineAsyncComponent } from './apiAsyncComponentLoader'
 import { KeepAlive } from './components/KeepAlive'
 import { Teleport } from './components/Teleport'
+import { Transition } from './components/Trasition'
 export {
   createRenderer,
   h,
@@ -27,5 +28,6 @@ export {
   onServerPrefetch,
   defineAsyncComponent,
   KeepAlive,
-  Teleport
+  Teleport,
+  Transition
 }
