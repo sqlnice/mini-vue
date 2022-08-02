@@ -840,7 +840,7 @@ if (isFunctional) {
 
 支持根据规则进行缓存：定义 `include` 和 `exclude`，如果匹配到则不缓存
 
-🟥 **Teleport 组件的实现原理**
+✅ **Teleport 组件的实现原理**
 
 Teleport 也需要渲染器支持，不过 Teleport 组件的渲染逻辑要从渲染器中分离出来，这么做有两个好处
 
@@ -868,6 +868,8 @@ Teleport 也需要渲染器支持，不过 Teleport 组件的渲染逻辑要从�
   ]
 }
 ```
+
+所以我们需要在组件挂载时判断为 Teleport 组件，调用组件选项中定义的 process 函数将渲染控制权完全交接过去
 
 🟥 **Transition 组件的实现原理**
 🟥 **总结**
