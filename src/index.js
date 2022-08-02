@@ -29,7 +29,7 @@ import {
   Teleport,
   Transition
 } from './runtime/index.js'
-
+import { parse, tokenzie } from './compiler/index.js'
 export default {
   reactive,
   shallowReactive,
@@ -56,5 +56,7 @@ export default {
   defineAsyncComponent,
   KeepAlive,
   Teleport,
-  Transition
+  Transition,
+  parse,
+  tokenzie
 }
