@@ -150,7 +150,7 @@ export const parse = str => {
         // 遇到文本标签
         const textNode = {
           type: 'Text',
-          children: t.content
+          content: t.content
         }
         // 只是单纯的文本，直接添加到父节点的 children 中
         parent.children.push(textNode)
@@ -165,4 +165,94 @@ export const parse = str => {
     tokens.shift()
   }
   return root
+}
+
+// 打印机
+export const dump = (node, indent = 0) => {
+  const type = node.type
+  const desc =
+    type === 'Root' ? '' : type === 'Element' ? node.tag : node.content
+  console.log(`${'-'.repeat(indent)}${type}:${desc}`)
+  if (node.children) {
+    node.children.forEach(n => {
+      dump(n, indent + 2)
+    })
+  }
+}
+
+const transformElement = node => {
+  if (node.type === 'Element') {
+    console.log(node)
+  }
+  return () => {}
+}
+const transformText = node => {
+  if (node.type === 'Text') {
+    console.log(node)
+  }
+  return () => {}
+}
+/**
+ * 深度优先遍历访问节点
+ * @param {*} ast
+ * @param {*} context
+ */
+export const traverseNode = (ast, context) => {
+  const currentNode = ast
+  // 用来解决 进入与退出 的问题
+  const exitFns = []
+  const transforms = context.nodeTransforms
+
+  if (transforms.length) {
+    for (let i = 0; i < transforms.length; i++) {
+      const onExit = transforms[i](currentNode, context)
+      if (onExit) {
+        exitFns.push(onExit)
+      }
+      if (!context.currentNode) return
+    }
+  }
+
+  const children = currentNode.children
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      context.parent = currentNode
+      context.childIndex = i
+      traverseNode(children[i], context)
+    }
+  }
+
+  // 节点处理的最后阶段执行缓存到 exitFns 中的回调
+  let i = exitFns.length
+  while (i--) {
+    exitFns[i]()
+  }
+}
+
+/**
+ * 转换函数
+ * @param {*} ast
+ */
+export const trnasform = ast => {
+  const context = {
+    // 当前正在转换的节点
+    currentNode: null,
+    // 用来存储当前节点在父节点中的位置索引
+    childIndex: 0,
+    // 父节点
+    parent: null,
+    // 替换操作
+    replaceNode(node) {
+      context.parent.children[context.childIndex] = node
+      context.currentNode = node
+    },
+    // 移除操作
+    removeNode() {
+      context.parent.children.splice(context.childIndex, 1)
+      context.currentNode = null
+    },
+    nodeTransforms: [transformElement, transformText]
+  }
+  traverseNode(ast, context)
+  dump(ast)
 }

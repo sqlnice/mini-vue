@@ -1013,9 +1013,144 @@ const tokens = [
 ]
 ```
 
+我们的模板最终对应的 AST 结构为
+
+```js
+const ast = {
+  type: 'Root',
+  children: [
+    {
+      type: 'Element',
+      tag: 'div',
+      children: [
+        {
+          type: 'Element',
+          tag: 'p',
+          children: [{ type: 'Text', content: 'Vue' }]
+        },
+        {
+          type: 'Element',
+          tag: 'p',
+          children: [{ type: 'Text', content: 'Template' }]
+        }
+      ]
+    }
+  ]
+}
+```
+
 所以我们在构造 AST 过程，就是对 Token 列表进行扫描。定义 elementStack 用来维护元素间的父子关系。每遇到**开始标签节点**就创建一个 Element 类型的 AST 节点
 
-🟥 **AST 的转换与插件化架构**
+✅ **AST 的转换与插件化架构**
+
+AST 转换指对 AST 进行一系列操作，将其转换为新的 AST 的过程。新的 AST 可以是原语言或者原 DSL 的描述，也可以是其他语言或者其他 DSL 的描述。例如我们对模板 AST 进行转换为 JavaScript AST。在编译器一开始的流程图中，transform 函数就是用来完成 AST 转换工作的
+
+- 节点的访问
+
+从 AST 根节点开始，进行深度优先遍历（回溯算法）
+
+下面是最简实现，将节点操作注册在 nodeTransforms 数组中
+
+```js
+/**
+ * 转换函数
+ * @param {*} ast
+ */
+export const trnasform = ast => {
+  const context = {
+    nodeTransforms: [transformElement, transformText]
+  }
+  traverseNode(ast, context)
+  dump(ast)
+}
+/**
+ * 深度优先遍历访问节点
+ * @param {*} ast
+ * @param {*} context
+ */
+export const traverseNode = (ast, context) => {
+  const currentNode = ast
+  const transforms = context.nodeTransforms
+  if (transforms.length) {
+    for (let i = 0; i < transforms.length; i++) {
+      transforms[i](currentNode, context)
+    }
+  }
+  const children = currentNode.children
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      traverseNode(children[i], context)
+    }
+  }
+}
+```
+
+- 转换上下文与节点操作
+
+1. 为什么需要 context 而不是直接把 nodeTransforms 作为参数传进去？
+
+Context 可以视作程序在某个范围内的“全局变量”，比如我们在 Vue 中使用的 provide/inject，也可以看作为全局上下文
+
+```js
+const context = {
+  // 当前正在转换的节点
+  currentNode: null,
+  // 用来存储当前节点在父节点中的位置索引
+  childIndex: 0,
+  // 父节点
+  parent: null,
+  nodeTransforms: []
+}
+```
+
+2. 节点替换操作
+
+在 context 中定义 replaceNode 函数，通过 parent.children[chilIndex] = node 来替换
+
+3. 节点移除操作
+
+在 context 中定义 removeNode 函数，通过 parent.children.splice(context.childIndex,1) 来移除
+
+由于被移除，所以在执行完毕后要判断 context.currentNode 不存在的话直接返回
+
+- 进入与退出
+
+我们需要知道每次转换完成之后，在这个基础上还要做特定的一些操作。目前的实现只能挨个执行没有退出机制，满足不了。所以我们这样设计
+
+```js
+export const traverseNode = (ast, context) => {
+  const currentNode = ast
+  // 用来解决 进入与退出 的问题
+  const exitFns = []
+  const transforms = context.nodeTransforms
+
+  if (transforms.length) {
+    for (let i = 0; i < transforms.length; i++) {
+      const onExit = transforms[i](currentNode, context)
+      // 存起来
+      if (onExit) {
+        exitFns.push(onExit)
+      }
+      if (!context.currentNode) return
+    }
+  }
+
+  const children = currentNode.children
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      context.parent = currentNode
+      context.childIndex = i
+      traverseNode(children[i], context)
+    }
+  }
+
+  // 节点处理的最后阶段执行缓存到 exitFns 中的回调
+  let i = exitFns.length
+  while (i--) {
+    exitFns[i]()
+  }
+}
+```
 
 🟥 **将模板 AST 转换为 JavaScript AST**
 
