@@ -988,3 +988,35 @@ const code = generate(jsAST)
 - 对模板的标记化
 
 使用**有限状态自动机**切割 Token
+
+可以通过正则表达式来精简 tokenzie 函数的代码，正则表达式的本质就是有限状态机
+
+✅ **构造 AST**
+对于一段模板可以通过 tokenzie 求出 Token 的集合
+
+```js
+const tokens = tokenzie('<div><p>Vue</p><p>Template</p></div>')
+```
+
+⬇️
+
+```js
+const tokens = [
+  { type: 'tag', name: 'div' },
+  { type: 'tag', name: 'p' },
+  { type: 'text', name: 'Vue' },
+  { type: 'tagEnd', name: 'p' },
+  { type: 'tag', name: 'p' },
+  { type: 'text', name: 'Template' },
+  { type: 'tagEnd', name: 'p' },
+  { type: 'tagEnd', name: 'div' }
+]
+```
+
+所以我们在构造 AST 过程，就是对 Token 列表进行扫描。定义 elementStack 用来维护元素间的父子关系。每遇到**开始标签节点**就创建一个 Element 类型的 AST 节点
+
+🟥 **AST 的转换与插件化架构**
+
+🟥 **将模板 AST 转换为 JavaScript AST**
+
+🟥 **代码生成**

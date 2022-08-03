@@ -4,18 +4,22 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Parse</title>
+    <title>parse</title>
     <script src="../../../dist/mini-vue.js"></script>
   </head>
 
   <body>
     <div id="app"></div>
     <script>
-      const { tokenzie } = MiniVue
+      const { tokenzie, parse } = MiniVue
+      // 测试 tokenzie
+      // const template = `<div>Hello</div>`
+      // const tokens = tokenzie(template)
+      // console.log(tokens)
 
-      const template = `<div>Hello</div>`
-      const tokens = tokenzie(template)
-      console.log(tokens)
+      // 测试 parse
+      const ast = parse('<div><p>Vue</p><p>Template</p></div>')
+      console.log(ast)
     </script>
   </body>
 </html>

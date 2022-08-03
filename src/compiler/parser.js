@@ -1,5 +1,3 @@
-export const parse = () => {}
-
 // 状态机的状态
 const State = {
   initial: 1, // 初始状态
@@ -109,4 +107,62 @@ export const tokenzie = str => {
   }
 
   return tokens
+}
+
+/**
+ * 接收模板字符串作为参数
+ * @param {String} str
+ */
+export const parse = str => {
+  // 获取 tokens
+  const tokens = tokenzie(str)
+  // 创建 Root 节点
+  const root = {
+    type: 'Root',
+    children: []
+  }
+
+  // 创建 elementStack 栈
+  const elementStack = [root]
+
+  while (tokens.length) {
+    // 获取当前扫描的 token
+    const t = tokens[0]
+    // 获取当前栈定点作为父节点
+    const parent = elementStack[elementStack.length - 1]
+
+    switch (t.type) {
+      case 'tag': {
+        // 遇到开始标签，创建 Element 类型的 AST 节点
+        const elementNode = {
+          type: 'Element',
+          tag: t.name,
+          children: []
+        }
+        // 添加到父级节点的 children 中
+        parent.children.push(elementNode)
+        // 压入栈
+        elementStack.push(elementNode)
+        break
+      }
+
+      case 'text': {
+        // 遇到文本标签
+        const textNode = {
+          type: 'Text',
+          children: t.content
+        }
+        // 只是单纯的文本，直接添加到父节点的 children 中
+        parent.children.push(textNode)
+        break
+      }
+      case 'tagEnd': {
+        // 遇到结束标签
+        elementStack.pop()
+        break
+      }
+    }
+    tokens.shift()
+  }
+  return root
 }
