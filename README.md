@@ -1056,7 +1056,7 @@ AST 转换指对 AST 进行一系列操作，将其转换为新的 AST 的过程
  * 转换函数
  * @param {*} ast
  */
-export const trnasform = ast => {
+export const transform = ast => {
   const context = {
     nodeTransforms: [transformElement, transformText]
   }
@@ -1153,5 +1153,210 @@ export const traverseNode = (ast, context) => {
 ```
 
 🟥 **将模板 AST 转换为 JavaScript AST**
+
+为什么要将模板 AST 转换为 JavaScript AST？
+
+我们最终要实现将模板 AST (`<div><p>Vue</p><p>Template</p><div>`)转换为渲染函数，也就是下面的代码
+
+```js
+function render() {
+  return h('div', [h('p', 'Vue'), h('p', 'Template')])
+}
+```
+
+可以看出 JavaScript AST 是 JavaScript 代码的描述，所以本质上需要设计一些数据结构来描述渲染函数的代码
+
+- 函数声明
+
+```js
+const FunctionDeclNode = {
+  type: 'FunctionDecl', // 代表该节点是函数声明
+  id: {
+    type: 'Identifier',
+    name: 'render' // 渲染函数的名称
+  },
+  params: [], // 参数
+  body: [
+    {
+      type: 'ReutrnStatement',
+      return: null
+    }
+  ]
+}
+```
+
+- 返回值
+
+```js
+const callExp = {
+  type: 'CallExpression',
+  // 被调用函数的名称，是一个标识符
+  callee: {
+    type: 'Identifier',
+    name: 'h'
+  },
+  // 参数
+  arguments: []
+}
+```
+
+- 字符串
+
+```js
+const Str = {
+  type: 'StringLiteral',
+  value: 'div'
+}
+```
+
+- 数组
+
+```js
+const Arr = {
+  type: 'ArrayExperssion',
+  // 数组中的元素
+  elements: []
+}
+```
+
+所以最终的函数声明为
+
+```js
+const FunctionDeclNode = {
+  type: 'FunctionDecl', // 代表该节点是函数声明
+  id: {
+    type: 'Identifier',
+    name: 'render' // 渲染函数的名称
+  },
+  params: [], // 参数
+  body: [
+    {
+      type: 'ReutrnStatement',
+      // 最外层 h 函数的调用
+      return: {
+        type: 'CallExpression',
+        callee: { type: 'Identifier', name: 'h' },
+        arguments: [
+          // 字符串字面量 div
+          {
+            type: 'StringLiteral',
+            value: 'div'
+          },
+          {
+            type: 'ArrayExpression',
+            elements: [
+              // h 函数的调用
+              {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: 'h' },
+                arguments: [
+                  { type: 'StringLiteral', value: 'p' },
+                  { type: 'StringLiteral', value: 'Vue' }
+                ]
+              },
+              {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: 'h' },
+                auguments: [
+                  { type: 'StringLiteral', value: 'p' },
+                  { type: 'StringLiteral', value: 'Vue' }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+除此之外我们还需要创建 JavaScript AST 节点的辅助函数
+
+```js
+// 创建 StringLiteral 节点
+export const createStringLiteral = value => {
+  return {
+    type: 'StringLiteral',
+    value
+  }
+}
+
+// 创建 Identifier 节点
+export const createIdentifier = name => {
+  return {
+    type: 'Identifier',
+    name
+  }
+}
+
+// 创建 ArrayExpression 节点
+export const createArrayExpression = elements => {
+  return {
+    type: 'ArrayExpression',
+    elements
+  }
+}
+
+// 创建 CallExpression 节点
+export const createCallExpression = (callee, args) => {
+  return {
+    type: 'CallExpression',
+    callee: createIdentifier(callee),
+    arguments: args
+  }
+}
+```
+
+为了把模板 AST 转换为 JavaScript AST，还更新两个转换函数 transformElement 和 transformText ，分别用来处理标签节点和文本节点
+
+```js
+// 转换标签节点
+const transformElement = node => {
+  return () => {
+    if (node.tpye !== 'Element') return
+
+    // 1.创建 h 函数调用语句
+    const callExp = createCallExpression('h', [createStringLiteral(node.tag)])
+
+    // 2.处理 h 函数的参数
+    node.children.length === 1
+      ? // 如果当前标签节点只有一个子节点，则直接使用子节点的 jsNode 参数
+        callExp.arguments.push(node.children[0].jsNode)
+      : // 否则创建一个 ArrayExpression 节点作为参数
+        callExp.arguments.push(
+          createArrayExpression(node.children.map(c => c.jsNode))
+        )
+    node.jsNode = callExp
+  }
+}
+
+// 转换文本节点
+const transformText = node => {
+  if (node.type !== 'Text') return
+  // 文本节点对应的 JavaScript AST 节点就是字符串字面量
+  node.jsNode = createStringLiteral(node.content)
+}
+```
+
+使用上面两个转换函数即可把模板 AST 转换为 h 函数的调用。最后还需要把用来描述 render 函数本身的函数声明语句节点附加到 JavaScript AST 中，所以需要编写 transformRoot 函数来实现对 Root 根节点的转换
+
+```js
+// 转换 Root 根节点
+export const transformRoot = node => {
+  return () => {
+    if (node.type !== 'Root') return
+    const vnodeJSAST = node.children[0].jsNode
+    node.jsNode = {
+      type: 'FunctionDecl',
+      id: { type: 'Identifier', name: 'render' },
+      params: [],
+      body: [{ type: 'ReturnStatement', return: vnodeJSAST }]
+    }
+  }
+}
+```
+
+经过这一步后，模板 AST 将转换为对应的 JavaScript AST ，并且可以通过根节点的 node.jsNode 来访问转换后的 JavaScript AST
 
 🟥 **代码生成**

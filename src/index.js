@@ -29,7 +29,7 @@ import {
   Teleport,
   Transition
 } from './runtime/index.js'
-import { parse, tokenzie } from './compiler/index.js'
+import { parse, transform } from './compiler/index.js'
 export default {
   reactive,
   shallowReactive,
@@ -58,5 +58,5 @@ export default {
   Teleport,
   Transition,
   parse,
-  tokenzie
+  transform
 }

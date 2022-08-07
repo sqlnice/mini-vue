@@ -13,7 +13,7 @@ const isAlpha = char =>
  * 有限状态自动机，将模板字符串切割为 Token 并返回
  * @param {String} str
  */
-export const tokenzie = str => {
+const tokenzie = str => {
   // 状态机当前状态
   let currentState = State.initial
   // 用于返回的 Token 数组
@@ -112,6 +112,7 @@ export const tokenzie = str => {
 /**
  * 接收模板字符串作为参数
  * @param {String} str
+ * @returns AST
  */
 export const parse = str => {
   // 获取 tokens
@@ -180,32 +181,91 @@ export const dump = (node, indent = 0) => {
   }
 }
 
-const transformElement = node => {
-  if (node.type === 'Element') {
-    console.log(node)
+// 创建 StringLiteral 节点
+export const createStringLiteral = value => {
+  return {
+    type: 'StringLiteral',
+    value
   }
-  return () => {}
 }
+
+// 创建 Identifier 节点
+export const createIdentifier = name => {
+  return {
+    type: 'Identifier',
+    name
+  }
+}
+
+// 创建 ArrayExpression 节点
+export const createArrayExpression = elements => {
+  return {
+    type: 'ArrayExpression',
+    elements
+  }
+}
+
+// 创建 CallExpression 节点
+export const createCallExpression = (callee, args) => {
+  return {
+    type: 'CallExpression',
+    callee: createIdentifier(callee),
+    arguments: args
+  }
+}
+// 转换文本节点
 const transformText = node => {
-  if (node.type === 'Text') {
-    console.log(node)
-  }
-  return () => {}
+  if (node.type !== 'Text') return
+  // 文本节点对应的 JavaScript AST 节点就是字符串字面量
+  node.jsNode = createStringLiteral(node.content)
 }
+
+// 转换标签节点
+const transformElement = node => {
+  return () => {
+    if (node.type !== 'Element') return
+    // 1.创建 h 函数调用语句
+    const callExp = createCallExpression('h', [createStringLiteral(node.tag)])
+    // 2.处理 h 函数的参数
+    node.children.length === 1
+      ? // 如果当前标签节点只有一个子节点，则直接使用子节点的 jsNode 参数
+        callExp.arguments.push(node.children[0].jsNode)
+      : // 否则创建一个 ArrayExpression 节点作为参数
+        callExp.arguments.push(
+          createArrayExpression(node.children.map(c => c.jsNode))
+        )
+    node.jsNode = callExp
+  }
+}
+
+// 转换 Root 根节点
+export const transformRoot = node => {
+  return () => {
+    if (node.type !== 'Root') return
+    const vnodeJSAST = node.children[0].jsNode
+    node.jsNode = {
+      type: 'FunctionDecl',
+      id: { type: 'Identifier', name: 'render' },
+      params: [],
+      body: [{ type: 'ReturnStatement', return: vnodeJSAST }]
+    }
+  }
+}
+
 /**
  * 深度优先遍历访问节点
  * @param {*} ast
  * @param {*} context
  */
 export const traverseNode = (ast, context) => {
-  const currentNode = ast
+  context.currentNode = ast
   // 用来解决 进入与退出 的问题
   const exitFns = []
   const transforms = context.nodeTransforms
 
   if (transforms.length) {
     for (let i = 0; i < transforms.length; i++) {
-      const onExit = transforms[i](currentNode, context)
+      const onExit = transforms[i](context.currentNode, context)
       if (onExit) {
         exitFns.push(onExit)
       }
@@ -213,10 +273,10 @@ export const traverseNode = (ast, context) => {
     }
   }
 
-  const children = currentNode.children
+  const children = context.currentNode.children
   if (children) {
     for (let i = 0; i < children.length; i++) {
-      context.parent = currentNode
+      context.parent = context.currentNode
       context.childIndex = i
       traverseNode(children[i], context)
     }
@@ -233,7 +293,7 @@ export const traverseNode = (ast, context) => {
  * 转换函数
  * @param {*} ast
  */
-export const trnasform = ast => {
+export const transform = ast => {
   const context = {
     // 当前正在转换的节点
     currentNode: null,
@@ -248,11 +308,13 @@ export const trnasform = ast => {
     },
     // 移除操作
     removeNode() {
-      context.parent.children.splice(context.childIndex, 1)
-      context.currentNode = null
+      if (context.parent) {
+        context.parent.children.splice(context.childIndex, 1)
+        context.currentNode = null
+      }
     },
-    nodeTransforms: [transformElement, transformText]
+    // 从后往前的
+    nodeTransforms: [transformRoot, transformElement, transformText]
   }
   traverseNode(ast, context)
-  dump(ast)
 }

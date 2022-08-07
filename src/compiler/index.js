@@ -1,2 +1,2 @@
-import { parse, tokenzie } from './parser'
-export { parse, tokenzie }
+import { parse, transform } from './parser'
+export { parse, transform }

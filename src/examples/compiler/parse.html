@@ -11,15 +11,12 @@
   <body>
     <div id="app"></div>
     <script>
-      const { tokenzie, parse } = MiniVue
-      // 测试 tokenzie
-      // const template = `<div>Hello</div>`
-      // const tokens = tokenzie(template)
-      // console.log(tokens)
+      const { parse, transform } = MiniVue
 
       // 测试 parse
-      const ast = parse('<div><p>Vue</p><p>Template</p></div>')
-      console.log(ast)
+      const templateAST = parse('<div><p>Vue</p><p>Template</p></div>')
+      transform(templateAST)
+      console.log(templateAST)
     </script>
   </body>
 </html>
