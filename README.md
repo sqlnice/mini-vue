@@ -910,16 +910,16 @@ if (isFunctional) {
 
 ## ⚛️ 编译器核心技术概览
 
-编译技术是一门包含内容非常多的学科，在 JavaScript、C 等通用用途语言的实现上需要掌握较多编译技术知识。但是 Vue.js 的模板和 JSX 都属于领域特定语言，实现难度属于中、低级别，在这篇章只要掌握基本的编译技术理论即可实现功能
+编译技术是一门包含内容非常多的学科，在 `JavaScript、C` 等通用用途语言的实现上需要掌握较多编译技术知识。但是 `Vue.js` 的模板和 `JSX` 都属于领域特定语言，实现难度属于中、低级别，在这篇章只要掌握基本的编译技术理论即可实现功能
 
 ![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
 ✅ **模板 DSL 的编译器**
 
-对于 Vue.js 模板编译器来说，源代码就是组件的模板，目标代码就是能在浏览器平台上运行的 JavaScript 代码。即 Vue.js 模板编译器的模板代码就是渲染函数 `render(){ /.../}`，大致流程为下图
+对于 `Vue.js` 模板编译器来说，源代码就是组件的模板，目标代码就是能在浏览器平台上运行的 `JavaScript` 代码。即 `Vue.js` 模板编译器的模板代码就是渲染函数 `render(){ /.../}`，大致流程为下图
 
 ![Vue.js 模板编译器工作流程](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5f1d0e07fd164e28960bf8af6e29e18f~tplv-k3u1fbpfcp-watermark.image?)
 
-其中模板 AST 即用来描述模板的抽象语法树
+其中模板 `AST` 即用来描述模板的抽象语法树
 
 ```html
 <div>
@@ -927,7 +927,7 @@ if (isFunctional) {
 </div>
 ```
 
-上述模板会被编译为如下所示的 AST
+上述模板会被编译为如下所示的 `AST`
 
 ```js
 const ast = {
@@ -957,19 +957,19 @@ const ast = {
 }
 ```
 
-通过上面的 AST 可以得出
+通过上面的 `AST` 可以得出
 
-- 节点的类型是通过 type 来区分的
+- 节点的类型是通过 `type` 来区分的
 
-- 子节点存储在 children 中
+- 子节点存储在 `children` 中
 
 - 不同节点拥有不同的对象属性
 
-我们可以通过封装 parse 函数来完成对模板的词法分析和语法分析得到模板 AST，然后进行语义分析。（语义分析是指分析属性值是否为静态、检查 v-else 是否存在配合的 v-if 指令等）
+我们可以通过封装 `parse` 函数来完成对模板的词法分析和语法分析得到模板 `AST` ，然后进行语义分析。**语义分析是指分析属性值是否为静态、检查 `v-else` 是否存在配合的 `v-if` 指令等**
 
-然后封装 transform 函数来完成模板 AST 到 JavaScript AST 的转换工作
+然后封装 `transform` 函数来完成模板 `AST` 到 `JavaScript AST` 的转换工作
 
-最后封装 generate 函数来生成渲染函数
+最后封装 `generate` 函数来生成渲染函数
 
 用代码表示：
 
@@ -987,12 +987,11 @@ const code = generate(jsAST)
 
 - 对模板的标记化
 
-使用**有限状态自动机**切割 Token
+使用**有限状态自动机**切割 `Token`
 
-可以通过正则表达式来精简 tokenzie 函数的代码，正则表达式的本质就是有限状态机
+后续可以通过正则表达式来精简 `tokenzie` 函数的代码，正则表达式的本质就是有限状态机
 
-✅ **构造 AST**
-对于一段模板可以通过 tokenzie 求出 Token 的集合
+对于一段模板可以通过 `tokenzie` 求出 `Token` 的集合
 
 ```js
 const tokens = tokenzie('<div><p>Vue</p><p>Template</p></div>')
@@ -1013,7 +1012,9 @@ const tokens = [
 ]
 ```
 
-我们的模板最终对应的 AST 结构为
+✅ **构造 AST**
+
+我们的模板最终对应的 `AST` 结构为
 
 ```js
 const ast = {
@@ -1039,17 +1040,17 @@ const ast = {
 }
 ```
 
-所以我们在构造 AST 过程，就是对 Token 列表进行扫描。定义 elementStack 用来维护元素间的父子关系。每遇到**开始标签节点**就创建一个 Element 类型的 AST 节点
+所以我们在构造 `AST` 过程，就是对 `Token` 列表进行扫描。定义 `elementStack` 用来维护元素间的父子关系。每遇到**开始标签节点**就创建一个 `Element` 类型的 `AST` 节点
 
 ✅ **AST 的转换与插件化架构**
 
-AST 转换指对 AST 进行一系列操作，将其转换为新的 AST 的过程。新的 AST 可以是原语言或者原 DSL 的描述，也可以是其他语言或者其他 DSL 的描述。例如我们对模板 AST 进行转换为 JavaScript AST。在编译器一开始的流程图中，transform 函数就是用来完成 AST 转换工作的
+`AST` 转换指对 `AST` 进行一系列操作，将其转换为新的 `AST` 的过程。新的 `AST` 可以是原语言或者原 `DSL` 的描述，也可以是其他语言或者其他 `DSL` 的描述。例如我们对模板 `AST` 进行转换为 `JavaScript AST`。在编译器一开始的流程图中， `transform` 函数就是用来完成 `AST` 转换工作的
 
 - 节点的访问
 
-从 AST 根节点开始，进行深度优先遍历（回溯算法）
+从 `AST` 根节点开始，进行深度优先遍历 **回溯**
 
-下面是最简实现，将节点操作注册在 nodeTransforms 数组中
+下面是最简实现，将节点操作注册在 `nodeTransforms` 数组中
 
 ```js
 /**
@@ -1087,9 +1088,9 @@ export const traverseNode = (ast, context) => {
 
 - 转换上下文与节点操作
 
-1. 为什么需要 context 而不是直接把 nodeTransforms 作为参数传进去？
+1. 为什么需要 `context` 而不是直接把 `nodeTransforms` 作为参数传进去？
 
-Context 可以视作程序在某个范围内的“全局变量”，比如我们在 Vue 中使用的 provide/inject，也可以看作为全局上下文
+`Context` 可以视作程序在某个范围内的“全局变量”，比如我们在 `Vue` 中使用的 `provide/inject` ，也可以看作为全局上下文
 
 ```js
 const context = {
@@ -1105,13 +1106,13 @@ const context = {
 
 2. 节点替换操作
 
-在 context 中定义 replaceNode 函数，通过 parent.children[chilIndex] = node 来替换
+在 `context` 中定义 `replaceNode` 函数，通过 `context.parent.children[chilIndex] = node` 来替换
 
 3. 节点移除操作
 
-在 context 中定义 removeNode 函数，通过 parent.children.splice(context.childIndex,1) 来移除
+在 `context` 中定义 `removeNode` 函数，通过 `context.parent.children.splice(context.childIndex,1)` 来移除
 
-由于被移除，所以在执行完毕后要判断 context.currentNode 不存在的话直接返回
+由于被移除，所以在执行完毕后要判断 `context.context.currentNode` 不存在的话直接返回
 
 - 进入与退出
 
@@ -1152,11 +1153,11 @@ export const traverseNode = (ast, context) => {
 }
 ```
 
-🟥 **将模板 AST 转换为 JavaScript AST**
+✅ **将模板 AST 转换为 `JavaScript AST`**
 
-为什么要将模板 AST 转换为 JavaScript AST？
+为什么要将模板 `AST` 转换为 `JavaScript AST`？
 
-我们最终要实现将模板 AST (`<div><p>Vue</p><p>Template</p><div>`)转换为渲染函数，也就是下面的代码
+我们最终要实现将模板 `AST` (`<div><p>Vue</p><p>Template</p><div>`)转换为渲染函数，也就是下面的代码
 
 ```js
 function render() {
@@ -1164,7 +1165,7 @@ function render() {
 }
 ```
 
-可以看出 JavaScript AST 是 JavaScript 代码的描述，所以本质上需要设计一些数据结构来描述渲染函数的代码
+可以看出 `JavaScript AST` 是 `JavaScript` 代码的描述，所以本质上需要设计一些数据结构来描述渲染函数的代码
 
 - 函数声明
 
@@ -1172,7 +1173,7 @@ function render() {
 const FunctionDeclNode = {
   type: 'FunctionDecl', // 代表该节点是函数声明
   id: {
-    type: 'Identifier',
+    type: 'Identifier', // 标识符
     name: 'render' // 渲染函数的名称
   },
   params: [], // 参数
@@ -1204,6 +1205,7 @@ const callExp = {
 
 ```js
 const Str = {
+  // 字符串字面量
   type: 'StringLiteral',
   value: 'div'
 }
@@ -1271,7 +1273,7 @@ const FunctionDeclNode = {
 }
 ```
 
-除此之外我们还需要创建 JavaScript AST 节点的辅助函数
+除此之外我们还需要创建 `JavaScript AST` 节点的辅助函数
 
 ```js
 // 创建 StringLiteral 节点
@@ -1308,7 +1310,7 @@ export const createCallExpression = (callee, args) => {
 }
 ```
 
-为了把模板 AST 转换为 JavaScript AST，还更新两个转换函数 transformElement 和 transformText ，分别用来处理标签节点和文本节点
+为了把模板 `AST` 转换为 `JavaScript AST`，还要更新 `transformElement` 和 `transformText` 函数，分别用来处理标签节点和文本节点
 
 ```js
 // 转换标签节点
@@ -1334,12 +1336,12 @@ const transformElement = node => {
 // 转换文本节点
 const transformText = node => {
   if (node.type !== 'Text') return
-  // 文本节点对应的 JavaScript AST 节点就是字符串字面量
+  // 文本节点对应的 `JavaScript AST` 节点就是字符串字面量
   node.jsNode = createStringLiteral(node.content)
 }
 ```
 
-使用上面两个转换函数即可把模板 AST 转换为 h 函数的调用。最后还需要把用来描述 render 函数本身的函数声明语句节点附加到 JavaScript AST 中，所以需要编写 transformRoot 函数来实现对 Root 根节点的转换
+使用上面两个转换函数即可把模板 `AST` 转换为 `h` 函数的调用。最后还需要把用来描述 `render` 函数本身的函数声明语句节点附加到 `JavaScript AST` 中，所以需要编写 `transformRoot` 函数来实现对 `Root` 根节点的转换
 
 ```js
 // 转换 Root 根节点
@@ -1357,6 +1359,6 @@ export const transformRoot = node => {
 }
 ```
 
-经过这一步后，模板 AST 将转换为对应的 JavaScript AST ，并且可以通过根节点的 node.jsNode 来访问转换后的 JavaScript AST
+经过这一步后，模板 `AST` 将转换为对应的 `JavaScript AST` ，并且可以通过根节点的 `node.jsNode` 来访问转换后的 `JavaScript AST`
 
 🟥 **代码生成**
