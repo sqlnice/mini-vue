@@ -1478,7 +1478,7 @@ function genReturnStatement(node, context) {
 | RAWTEXT | 否           | 否                 |
 | CDATA   | 否           | 否                 |
 
-🟥 **递归下降算法构造模板 AST**
+✅ **递归下降算法构造模板 AST**
 
 解析器的基本架构模型
 
@@ -1571,3 +1571,31 @@ function parseElement(context, ancestors) {
 ```
 
 从上面的两段代码可以看到 parseChildren 是核心，在 parseChildren 运行过程中，为了处理标签节点，会调用 parseElement 解析函数，这会间接调用 parseChildren ，并产生新的状态机。随着标签嵌套层次的增加，会一直调用 parseChildren，这就是“递归下降”中“递归”的含义。而上下级 parseChildren 会各自创建自己的模板 AST ，最终会构造出一棵树结构的 AST，这就是“下降”的含义
+
+✅ **状态机的开启与停止**
+
+当解析器遇到开始标签时，会将该标签压入父级节点栈，同时开启新的状态机
+
+当解析器遇到结束标签，并且父级节点栈中存在于该标签同名的开始标签节点时，会停止正在运行的状态机
+
+```js
+function isEnd(context, ancestors) {
+  // 解析完毕直接返回
+  if (!context.source) return true
+  // 与父级节点栈内所以节点做比较
+  for (let i = ancestors.length - 1; i >= 0; --i) {
+    // 只要栈中存在于当前结束标签同名的节点，就停止
+    if (context.source.startsWith(`</${ancestors[i].tag}`)) {
+      return true
+    }
+  }
+}
+```
+
+🟥 **解析标签节点**
+
+🟥 **解析属性**
+
+🟥 **解析文本与解析 HTML 实体**
+
+🟥 **解析插值与注释**

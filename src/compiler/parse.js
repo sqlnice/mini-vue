@@ -89,5 +89,13 @@ function parseTag(tag) {
 }
 
 function isEnd(context, ancestors) {
-  console.log(context, ancestors)
+  // 解析完毕直接返回
+  if (!context.source) return true
+  // 与父级节点栈内所以节点做比较
+  for (let i = ancestors.length - 1; i >= 0; --i) {
+    // 只要栈中存在于当前结束标签同名的节点，就停止
+    if (context.source.startsWith(`</${ancestors[i].tag}`)) {
+      return true
+    }
+  }
 }
