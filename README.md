@@ -1361,7 +1361,7 @@ export const transformRoot = node => {
 
 经过这一步后，模板 `AST` 将转换为对应的 `JavaScript AST` ，并且可以通过根节点的 `node.jsNode` 来访问转换后的 `JavaScript AST`
 
-🟥 **代码生成**
+✅ **代码生成**
 
 代码生成本质上是字符串拼接的艺术
 
@@ -1444,3 +1444,130 @@ function genReturnStatement(node, context) {
 
 // ...
 ```
+
+## ⚛️ 解析器
+
+解析器（parser）本质是一个状态机，下面将更多的利用正则表达式来实现 HTML 解析器
+
+关于 HTML 文本解析， WHATWG 定义了完整的错误处理和状态机的状态迁移流程，例如 DATA、CDATA、RCDATA、RAWTEXT 等
+
+✅ **文本模式及其对解析器的影响**
+
+文本模式指的是**解析器**在工作时进入的一种特殊状态，在不同的特殊状态下，解析器对文本的解析行为会有所不同
+
+- 默认 DATA 模式
+
+在默认的 DATA 模式下，解析器遇到字符 < 时，会切换到**标签开始状态**。当遇到字符 & 时，会切换到**字符引用状态**
+
+- `<title>`标签、`<textarea>`标签，当解析器遇到这两个时，会切换到 `RCDATA` 模式
+
+在 RCDATA 模式下，解析器不能识别标签元素，也就是在 <textarea> 内可以将字符 < 作为普通文本
+
+- `<style>`、`<xmp>`、`<iframe>`、`<noembed>`、`<noscript>`等标签会切换到 RAWTEXT 模式
+
+与 RCDATA 类似，但是不再支持 HTML 实体
+
+- 当遇到`<![CDATA][`字符串时，会进入 CDATA 模式
+
+将任何字符都作为普通字符处理
+
+| 模式    | 能否解析标签 | 是否支持 HTML 实体 |
+| ------- | ------------ | ------------------ |
+| DATA    | **能**       | **是**             |
+| RCDATA  | 否           | **是**             |
+| RAWTEXT | 否           | 否                 |
+| CDATA   | 否           | 否                 |
+
+🟥 **递归下降算法构造模板 AST**
+
+解析器的基本架构模型
+
+```js
+export function parse(str) {
+  // 上下文对象
+  const context = {
+    // 模板内容，用于消费
+    source: str,
+    // 初始模式为 DATA
+    mode: TextModes.DATA
+  }
+  // 节点栈，初始为空
+  const nodes = parseChildren(context, [])
+  // 返回 Root 根节点
+  return { type: 'Root', children: nodes }
+}
+```
+
+parseChildren 本质也是状态机，其有多少种状态取决于子节点的类型数量，在 Vue 模板中，子节点可以是以下几种：
+
+1. 标签节点 <div>
+
+2. 文本插值节点 {{ val }}
+
+3. 普通文本节点 'text'
+
+4. 注释节点 <!---->
+
+5. CDATA 节点 <![CDATA[ xxx ]]>
+
+```js
+function parseChildren(context, ancestors) {
+  // 用于存储子节点，是最终的返回值
+  const nodes = []
+  const { source, mode } = context
+  while (!isEnd(context, ancestors)) {
+    let node
+    // 只有这两个模式才支持 HTML 实体
+    if ([TextModes.DATA, TextModes.RCDATA].includes(mode)) {
+      // 只有 DATA 模式才支持标签节点的解析
+      if (mode === TextModes.data && source[0] === '<') {
+        if (source[1] === '!') {
+          if (source.startsWith('<!--')) {
+            // 注释
+            node = parseComment(context)
+          } else if (source.startsWith('<![CDATA[')) {
+            // CDATA
+            node = parseCDATA(context, ancestors)
+          }
+        } else if (source[1] === '/') {
+          // 结束标签
+        } else if (/[a-z]/i.test(source[1])) {
+          // 标签
+          node = parseElement(context, ancestors)
+        }
+      } else if (source.startsWith('{{')) {
+        // 解析插值
+        node = parseInterpolation(context)
+      }
+    }
+
+    // node 不存在，说明处于其他模式，直接作为文本处理
+    if (!node) {
+      node = parseText(context)
+    }
+    nodes.push(node)
+  }
+  return nodes
+}
+```
+
+parseElement 做三件事：
+
+1. 解析开始标签
+
+2. 解析子标签
+
+3. 解析结束标签
+
+```js
+function parseElement(context, ancestors) {
+  // 解析开始标签
+  const element = parseTag()
+  // 递归调用 parseChildren 解析子标签
+  element.children = parseChildren(context, ancestors)
+  parseTag('end')
+  return element
+}
+```
+
+从上面的两段代码可以看到 parseChildren 是核心，在 parseChildren 运行过程中，为了处理标签节点，会调用 parseElement 解析函数，这会间接调用 parseChildren ，并产生新的状态机。随着标签嵌套层次的增加，会一直调用 parseChildren，这就是“递归下降”中“递归”的含义。而上下级 parseChildren 会各自创建自己的模板 AST ，最终会构造出一棵树结构的 AST，这就是“下降”的含义
