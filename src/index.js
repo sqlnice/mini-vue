@@ -29,7 +29,7 @@ import {
   Teleport,
   Transition
 } from './runtime/index.js'
-import { parse, transform } from './compiler/index.js'
+import { compile } from './compiler/index.js'
 export default {
   reactive,
   shallowReactive,
@@ -57,6 +57,5 @@ export default {
   KeepAlive,
   Teleport,
   Transition,
-  parse,
-  transform
+  compile
 }

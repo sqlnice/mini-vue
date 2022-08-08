@@ -1,2 +1,2 @@
-import { parse, transform } from './parser'
-export { parse, transform }
+import { compile } from './compile'
+export { compile }

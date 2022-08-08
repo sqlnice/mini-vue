@@ -11,12 +11,11 @@
   <body>
     <div id="app"></div>
     <script>
-      const { parse, transform } = MiniVue
+      const { compile } = MiniVue
 
-      // 测试 parse
-      const templateAST = parse('<div><p>Vue</p><p>Template</p></div>')
-      transform(templateAST)
-      console.log(templateAST)
+      const template = '<div><p>Vue</p><p>Template</p></div>'
+      const code = compile(template)
+      console.log(code)
     </script>
   </body>
 </html>

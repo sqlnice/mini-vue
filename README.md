@@ -1362,3 +1362,85 @@ export const transformRoot = node => {
 经过这一步后，模板 `AST` 将转换为对应的 `JavaScript AST` ，并且可以通过根节点的 `node.jsNode` 来访问转换后的 `JavaScript AST`
 
 🟥 **代码生成**
+
+代码生成本质上是字符串拼接的艺术
+
+代码生成也需要上下文对象
+
+```js
+export function generate(node) {
+  const context = {
+    // 最终生成的代码
+    code: '',
+    push(code) {
+      context.code += code
+    },
+    // 当前缩进
+    currentIndent: 0,
+    // 换行函数
+    newLine() {
+      context.code += `\n${'  '.repeat(context.currentIndent)}`
+    },
+    // 控制缩进
+    ident() {
+      context.currentIndent++
+      context.newLine()
+    },
+    // 取消缩进
+    deIdent() {
+      context.currentIndent--
+      context.newLine()
+    }
+  }
+
+  genNode(node, context)
+  return context.code
+}
+```
+
+在 `genNode` 函数中，只需要匹配各种类型的 `JavaScript AST` 节点并调用对应的生成函数即可，下面为简单示例
+
+```js
+function genNode(node, context) {
+  switch (node.type) {
+    case 'FunctionDecl':
+      genFunctionDecl(node, context)
+      break
+    case 'ReturnStatement':
+      genReturnStatement(node, context)
+      break
+    case 'CallExpression':
+      genCallExpression(node, context)
+      break
+    case 'StringLiteral':
+      genStringLiteral(node, context)
+      break
+    case 'ArrayExpression':
+      genArrayExpression(node, context)
+      break
+  }
+}
+function genFunctionDecl(node, context) {
+  const { push, ident, deIdent } = context
+  console.log(node)
+  push(`function ${node.id.name}`)
+  push('(')
+  // 设置参数
+  genNodeList(node.params, context)
+  push(') ')
+  push('{')
+  // 缩进
+  ident()
+  // 函数体生成代码
+  node.body.forEach(n => genNode(n, context))
+  deIdent()
+  push('}')
+}
+function genReturnStatement(node, context) {
+  const { push } = context
+  push('return ')
+  genNode(node.return, context)
+}
+
+// ...
+```
