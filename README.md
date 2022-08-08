@@ -1592,7 +1592,69 @@ function isEnd(context, ancestors) {
 }
 ```
 
-🟥 **解析标签节点**
+✅ **解析标签节点**
+
+```js
+function parseElement(context, ancestors) {
+  // 解析开始标签
+  const element = parseTag(context)
+  // 自闭和标签
+  if (element.isSelfClosing) return element
+
+  // 切换到正确的模式
+  if (['textarea', 'title'].includes(element.tag)) {
+    context.mode = TextModes.RCDATA
+  } else if (/style|xmp|iframe|noembed|noframes|noscript/.test(element.tag)) {
+    context.mode = TextModes.RAWTEXT
+  } else {
+    context.mode = TextModes.DATA
+  }
+
+  // 回溯
+  ancestors.push(element)
+  // 递归调用 parseChildren 解析子标签
+  element.children = parseChildren(context, ancestors)
+  ancestors.pop()
+
+  // 理论来说消费完子标签后最后应该最剩下的应该是 </div>
+  if (context.source.startsWith(`</${element.tag}`)) {
+    parseTag(context, 'end')
+  } else {
+    console.error(`${element.tag} 标签缺少闭合标签`)
+  }
+  return element
+}
+
+function parseTag(context, type = 'start') {
+  const { advanceBy, advanceSpaces } = context
+
+  const match =
+    type === 'start'
+      ? // 匹配开始标签
+        /^<([a-z][^\t\r\n\f  />]*)/i.exec(context.source)
+      : // 匹配结束标签
+        /^<\/([a-z][^\t\r\n\f  />]*)/i.exec(context.source)
+  // 标签名称
+  const tag = match[1]
+  // 消费正则表达式匹配到的全部内容，例如 <div>
+  advanceBy(match[0].length)
+  // 消费空白字符
+  advanceSpaces()
+  const isSelfClosing = context.source.startsWith('/>')
+  // 如果自闭和标签，消费 /> 否则消费 >
+  advanceBy(isSelfClosing ? 2 : 1)
+  return {
+    type: 'Element',
+    tag,
+    // 标签属性
+    props: [],
+    // 子节点
+    children: [],
+    // 是否为自闭和标签
+    isSelfClosing
+  }
+}
+```
 
 🟥 **解析属性**
 
