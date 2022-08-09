@@ -13,9 +13,19 @@
     <script>
       const { compile } = MiniVue
 
-      const template = '<div><p>Vue</p><p>Template</p></div>'
-      const code = compile(template)
-      console.log(code)
+      // 解析属性
+      // const template = '<div id="foo" v-show="display"></div>'
+      // 文本节点
+      // const template = '<div>Text</div>'
+      // 解析 HTML 实体
+      // const template = '<div>Text&lt</div>'
+      // 插值
+      // const template = '<div>foo {{ bar }} baz</div>'
+      // 注释
+      const template = '<div><!-- comments --></div>'
+
+      const ast = compile(template)
+      console.log(ast)
     </script>
   </body>
 </html>

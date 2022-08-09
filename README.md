@@ -1447,36 +1447,36 @@ function genReturnStatement(node, context) {
 
 ## ⚛️ 解析器
 
-解析器（parser）本质是一个状态机，下面将更多的利用正则表达式来实现 HTML 解析器
+解析器（`parser`）本质是一个状态机，下面将更多的利用正则表达式来实现 `HTML` 解析器
 
-关于 HTML 文本解析， WHATWG 定义了完整的错误处理和状态机的状态迁移流程，例如 DATA、CDATA、RCDATA、RAWTEXT 等
+关于 `HTML` 文本解析， `WHATWG` 定义了完整的错误处理和状态机的状态迁移流程，例如 `DATA`、`CDATA`、`RCDATA`、`RAWTEXT` 等
 
 ✅ **文本模式及其对解析器的影响**
 
 文本模式指的是**解析器**在工作时进入的一种特殊状态，在不同的特殊状态下，解析器对文本的解析行为会有所不同
 
-- 默认 DATA 模式
+- 默认 `DATA` 模式
 
-在默认的 DATA 模式下，解析器遇到字符 < 时，会切换到**标签开始状态**。当遇到字符 & 时，会切换到**字符引用状态**
+在默认的 `DATA` 模式下，解析器遇到字符 `<` 时，会切换到**标签开始状态**。当遇到字符 `&` 时，会切换到**字符引用状态**
 
 - `<title>`标签、`<textarea>`标签，当解析器遇到这两个时，会切换到 `RCDATA` 模式
 
-在 RCDATA 模式下，解析器不能识别标签元素，也就是在 <textarea> 内可以将字符 < 作为普通文本
+在 `RCDATA` 模式下，解析器不能识别标签元素，也就是在 `<textarea>` 内可以将字符 `<` 作为普通文本
 
-- `<style>`、`<xmp>`、`<iframe>`、`<noembed>`、`<noscript>`等标签会切换到 RAWTEXT 模式
+- `<style>`、`<xmp>`、`<iframe>`、`<noembed>`、`<noscript>`等标签会切换到 `RAWTEXT` 模式
 
-与 RCDATA 类似，但是不再支持 HTML 实体
+与 `RCDATA` 类似，但是不再支持 `HTML` 实体
 
-- 当遇到`<![CDATA][`字符串时，会进入 CDATA 模式
+- 当遇到`<![CDATA][`字符串时，会进入 `CDATA` 模式
 
 将任何字符都作为普通字符处理
 
-| 模式    | 能否解析标签 | 是否支持 HTML 实体 |
-| ------- | ------------ | ------------------ |
-| DATA    | **能**       | **是**             |
-| RCDATA  | 否           | **是**             |
-| RAWTEXT | 否           | 否                 |
-| CDATA   | 否           | 否                 |
+| 模式      | 能否解析标签 | 是否支持 HTML 实体 |
+| --------- | ------------ | ------------------ |
+| `DATA`    | **能**       | **是**             |
+| `RCDATA`  | 否           | **是**             |
+| `RAWTEXT` | 否           | 否                 |
+| `CDATA`   | 否           | 否                 |
 
 ✅ **递归下降算法构造模板 AST**
 
@@ -1498,17 +1498,21 @@ export function parse(str) {
 }
 ```
 
-parseChildren 本质也是状态机，其有多少种状态取决于子节点的类型数量，在 Vue 模板中，子节点可以是以下几种：
+`parseChildren` 本质也是状态机，其有多少种状态取决于子节点的类型数量，在 `Vue` 模板中，子节点可以是以下几种：
 
-1. 标签节点 <div>
+1. 标签节点 `<div>`
 
-2. 文本插值节点 {{ val }}
+2. 文本插值节点 `{{ val }}`
 
-3. 普通文本节点 'text'
+3. 普通文本节点 `'text'`
 
-4. 注释节点 <!---->
+4. 注释节点 `<!---->`
 
-5. CDATA 节点 <![CDATA[ xxx ]]>
+5. CDATA 节点 `<![CDATA[ xxx ]]>`
+
+`parseChildren` 函数在解析模板过程中的状态迁移过程：
+
+![parseChildren 函数在解析模板过程中的状态迁移过程](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f26e88269091489fa6a7b646d029aaf0~tplv-k3u1fbpfcp-watermark.image?)
 
 ```js
 function parseChildren(context, ancestors) {
@@ -1551,7 +1555,7 @@ function parseChildren(context, ancestors) {
 }
 ```
 
-parseElement 做三件事：
+`parseElement` 做三件事：
 
 1. 解析开始标签
 
@@ -1570,7 +1574,7 @@ function parseElement(context, ancestors) {
 }
 ```
 
-从上面的两段代码可以看到 parseChildren 是核心，在 parseChildren 运行过程中，为了处理标签节点，会调用 parseElement 解析函数，这会间接调用 parseChildren ，并产生新的状态机。随着标签嵌套层次的增加，会一直调用 parseChildren，这就是“递归下降”中“递归”的含义。而上下级 parseChildren 会各自创建自己的模板 AST ，最终会构造出一棵树结构的 AST，这就是“下降”的含义
+从上面的两段代码可以看到 `parseChildren` 是核心，在 `parseChildren` 运行过程中，为了处理标签节点，会调用 `parseElement` 解析函数，这会间接调用 `parseChildren` ，并产生新的状态机。随着标签嵌套层次的增加，会一直调用 `parseChildren` ，这就是“递归下降”中“递归”的含义。而上下级 `parseChildren` 会各自创建自己的模板 `AST` ，最终会构造出一棵树结构的 `AST` ，这就是“下降”的含义
 
 ✅ **状态机的开启与停止**
 
@@ -1656,8 +1660,232 @@ function parseTag(context, type = 'start') {
 }
 ```
 
-🟥 **解析属性**
+✅ **解析属性**
+
+上一节的 `parseTag` 会消费整个开始标签，意味着解析属性的过程也要放在这个过程中
+
+```HTML
+<div id="foo" v-show="display"/>
+```
+
+`parseAttributes` 函数消费模板内容的过程，就是不断地解析属性名称、等于号、属性值的过程
+
+![parse 解析器 - 解析属性](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f128cc327ad7458890cb5b7ccf7a679d~tplv-k3u1fbpfcp-watermark.image?)
+
+```js
+function parseAttributes(context) {
+  const { advanceBy, advanceSpaces } = context
+  const props = []
+  // 不断消费模板内容，直到遇到标签的结束部分
+  while (!context.source.startsWith('>' && !context.source.startsWith('/>'))) {
+    //
+  }
+  return props
+}
+```
+
+```HTML
+<div id="foo" v-show="display"/>
+```
+
+经过解析后的属性为
+
+```js
+const ast = {
+  type: 'Root',
+  children: [
+    {
+      type: 'Element',
+      tag: 'div',
+      props: [
+        { type: 'Attribute', name: 'id', value: 'foo' },
+        { type: 'Directive', name: 'v-show', value: 'display' }
+      ],
+      children: [],
+      isSelfClosing: false
+    }
+  ]
+}
+```
 
 🟥 **解析文本与解析 HTML 实体**
 
+- 解析文本
+
+```js
+function parseText(context) {
+  // 默认整个模板剩余部分都作为文本内容
+  let endIndex = context.source.length
+  // 寻找字符 < 的位置索引
+  const ltIndex = context.source.indexOf('<')
+  // 寻找插值 {{ 的位置索引
+  const delimiterIndex = context.source.indexOf('{{')
+  if (ltIndex > -1 && ltIndex < endIndex) {
+    endIndex = ltIndex
+  }
+  if (delimiterIndex > -1 && delimiterIndex < endIndex) {
+    endIndex = delimiterIndex
+  }
+  // 截取文本内容
+  const content = context.source.slice(0, endIndex)
+  // 消费文本内容
+  context.advanceBy(content.length)
+
+  return {
+    type: 'Text',
+    content
+  }
+}
+```
+
+- 解析 `HTML` 实体
+
+`HTML` 实体是以一段以字符 `&` 开始文本内容。实体用来描述 `HTML` 中的保留字符和一些难以通过键盘输入的字符，以及一些不可见的字符，例如 `<` 。`HTML` 实体有两类，分别叫**命名字符引用**和**数字字符引用**
+
+为什么 `Vue.js` 模板的解析器会对文本节点中的 `HTML` 实体进行解码？
+
+在 `Vue.js` 模板中，文本节点包含的 `HTML` 内容不会被浏览器解析，是因为模板中的文本最终通过 `el.textContent = '&lt;'` 来设置的，在这里只是字符串，并不是理想中的 `<` 。所以我们应该在解析的时候对文本节点中存在的 `HTML` 实体进行解码
+
+```js
+// rawText 被解码的文本内容
+// asAttr 是否作为属性值
+function decodeHtml(rawText, asAttr = false) {
+  let offset = 0
+  const end = rawText.length
+  // 最终返回值
+  let decodedText = ''
+  // 引用表中实体名称的最大长度
+  let maxCRNameLength = 0
+
+  // 用于消费指定长度的文本
+  function advance(length) {
+    offset += length
+    rawText = rawText.slice(length)
+  }
+
+  // 消费字符串，直到处理完毕
+  while (offset < end) {
+    // 匹配字符引用的开始部分，如果匹配成功，那么 head[0] 的值将有三种可能
+    // 1. head[0] === '&' 说明该字符引用是命名字符引用
+    // 2. head[0] === '&#' 说明该字符引用是用十进制表示的数字字符引用
+    // 2. head[0] === '&#x' 说明该字符引用是用十六进制表示的数字字符引用
+    const head = /&(?:#x?)?/i.exec(rawText)
+    // 没有匹配，说明已经没有需要解码的内容了
+    if (!head) {
+      // 计算剩余内容的长度
+      const remaining = end - offset
+      decodedText += rawText.slice(0, remaining)
+      // 消费剩余内容
+      advance(remaining)
+      break
+    }
+
+    // head.index 为匹配的字符 & 在 rawText 中的索引
+    // 截取字符 & 之前的内容加到 decodedText 上
+    decodedText += rawText.slice(0, head.index)
+    // 消费字符 & 之前的内容
+    advance(head.index)
+
+    // 满足条件则说明是命名字符引用，否则为数字字符引用
+    if (head[0] === '&') {
+      // Named character reference.
+      let name = ''
+      let value
+      // 字符 & 的下一个字符必须是 ASCII 字母或数字
+      if (/[0-9a-z]/i.test(rawText[1])) {
+        // 根据引用表计算实体名称的最大长度
+        if (!maxCRNameLength) {
+          maxCRNameLength = Object.keys(namedCharacterReferences).reduce(
+            (max, name) => Math.max(max, name.length),
+            0
+          )
+        }
+        // 从最大长度开始对文本进行截取，并试图去引用表中找到此项
+        for (let length = maxCRNameLength; !value && length > 0; --length) {
+          name = rawText.substr(1, length)
+          value = namedCharacterReferences[name]
+        }
+        // 有值则解码成功
+        if (value) {
+          // 检查最后是否为分号
+          const semi = name.endsWith(';')
+          // 如果解码的文本作为属性值，最后一个匹配的字符不是分号，
+          // 并且最后一个匹配字符的下一个字符是等于号、ASCII 字母或数字，
+          // 由于历史原因，将字符 & 和实体名称 name 作为普通文本
+          if (
+            asAttr &&
+            !semi &&
+            /[=a-z0-9]/i.test(rawText[name.length + 1] || '')
+          ) {
+            decodedText += '&' + name
+            advance(1 + name.length)
+          } else {
+            // 其他情况下，将解码后的内容拼接
+            decodedText += value
+            advance(1 + name.length)
+          }
+        } else {
+          // 没找到，解码失败
+          decodedText += '&' + name
+          advance(1 + name.length)
+        }
+      } else {
+        // 如果字符 & 的下一个字符不是 ASCII 字母或数字，则将字符 & 看做普通文本
+        decodedText += '&'
+        advance(1)
+      }
+    } else {
+      // 判断是十进制表示还是十六进制表示
+      const hex = head[0] === '&#x'
+      // 根据不同进制表示法，选用不同的正则
+      const pattern = hex ? /^&#x([0-9a-f]+);?/i : /^&#([0-9]+);?/
+      // 最终，body[1] 的值就是 Unicode 码点
+      const body = pattern.exec(rawText)
+
+      // 如果匹配成功，则调用 String.fromCodePoint 函数进行解码
+      if (body) {
+        // 将码点字符串转为十进制数字
+        let cp = Number.parseInt(body[1], hex ? 16 : 10)
+        // 码点的合法性检查
+        if (cp === 0) {
+          // 如果码点值为 0x00，替换为 0xfffd
+          cp = 0xfffd
+        } else if (cp > 0x10ffff) {
+          // 如果码点值超过了 Unicode 的最大值，替换为 0xfffd
+          cp = 0xfffd
+        } else if (cp >= 0xd800 && cp <= 0xdfff) {
+          // 如果码点值处于 surrogate pair 范围，替换为 0xfffd
+          cp = 0xfffd
+        } else if ((cp >= 0xfdd0 && cp <= 0xfdef) || (cp & 0xfffe) === 0xfffe) {
+          // 如果码点值处于 `noncharacter` 范围，则什么都不做，交给平台处理
+          // noop
+        } else if (
+          // 控制字符集的范围是：[0x01, 0x1f] 加上 [0x7f, 0x9f]
+          // 却掉 ASICC 空白符：0x09(TAB)、0x0A(LF)、0x0C(FF)
+          // 0x0D(CR) 虽然也是 ASICC 空白符，但需要包含
+          (cp >= 0x01 && cp <= 0x08) ||
+          cp === 0x0b ||
+          (cp >= 0x0d && cp <= 0x1f) ||
+          (cp >= 0x7f && cp <= 0x9f)
+        ) {
+          // 在 CCR_REPLACEMENTS 表中查找替换码点，如果找不到则使用原码点
+          cp = CCR_REPLACEMENTS[cp] || cp
+        }
+        // 解码后追加到 decodedText 上
+        decodedText += String.fromCodePoint(cp)
+        // 消费掉整个数字字符引用的内容
+        advance(body[0].length)
+      } else {
+        // 如果没有匹配，则不进行解码操作，只是把 head[0] 追加到 decodedText 并消费掉
+        decodedText += head[0]
+        advance(head[0].length)
+      }
+    }
+  }
+  return decodedText
+}
+```
+
 🟥 **解析插值与注释**
+
+解析器在解析插值时，只需要将文本插值的开始定界符与结束定界符之间的内容提取出来，作为 `JavaScript` 表达式即可
