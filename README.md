@@ -1,6 +1,6 @@
 # `mini-vue`
 
-⏳ 逐渐实现 `Vue.js` 大部分功能
+⏳ 逐步实现 `Vue 3` 大部分功能
 
 # 目录结构
 
@@ -14,7 +14,7 @@
   - `reactivity` 响应式系统
 - `vue3`
 
-  `Vue.js 3` 完整代码以及对应的测试代码
+  `Vue 3` 源码
 
 # 响应系统
 
@@ -945,14 +945,15 @@ if (isFunctional) {
 
 # 编译器
 
-[编译器相关流程图](【腾讯文档】编译器https://docs.qq.com/flowchart/DVVpiTEVOUkFadkN5)
+![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
+
+[编译器相关流程图](https://docs.qq.com/flowchart/DVVpiTEVOUkFadkN5)
 
 <details>
 <summary>编译器核心技术概览</summary>
 
 编译技术是一门包含内容非常多的学科，在 `JavaScript、C` 等通用用途语言的实现上需要掌握较多编译技术知识。但是 `Vue.js` 的模板和 `JSX` 都属于领域特定语言，实现难度属于中、低级别，在这篇章只要掌握基本的编译技术理论即可实现功能
 
-![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
 ✅ **模板 DSL 的编译器**
 
 对于 `Vue.js` 模板编译器来说，源代码就是组件的模板，目标代码就是能在浏览器平台上运行的 `JavaScript` 代码。即 `Vue.js` 模板编译器的模板代码就是渲染函数 `render(){ /.../}`，大致流程为下图
