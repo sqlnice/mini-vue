@@ -945,9 +945,9 @@ if (isFunctional) {
 
 # 编译器
 
-![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
+[编译器相关流程图](https://docs.qq.com/s/Fa3eqX3yv0IztS1RxseXjG)
 
-[编译器相关流程图](https://docs.qq.com/flowchart/DVVpiTEVOUkFadkN5)
+![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
 
 <details>
 <summary>编译器核心技术概览</summary>
