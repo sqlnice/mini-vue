@@ -38,148 +38,241 @@
 // }
 ```
 
-✅ **为什么使用 `WeakMap`**
+<details>
+<summary>为什么使用 WeakMap</summary>
 
 当 `reactiveObject` 不再使用后，不必手动去 `WeakMap` 里删除，垃圾回收系统可以自动回收
 
-✅ **分支切换 `cleanup`**
+</details>
 
-✅ **嵌套 `effect` 与 `effect` 栈**
+<details>
+<summary>分支切换 cleanup</summary>
+
+</details>
+
+<details>
+<summary>嵌套 effect 与 effect 栈</summary>
 
 新建 `effectStack` 栈结构来存储 `effectFn`
 
-✅ **避免无限递归循环**
+</details>
+
+<details>
+<summary>避免无限递归循环</summary>
 
 如果 `trigger` 触发执行的副作用函数与当前正在执行的副作用函数不同，才触发执行
 
 `if (effectFn !== activeEffect) effectsToRun.add(effectFn)`
 
-✅ **调度执行**
+</details>
+
+<details>
+<summary>调度执行</summary>
 
 所谓可调度，就是当 trigger 动作触发副作用函数重新执行时，有能力决定副作用函数执行的时间、次数及方式
 
 `effect(()=>{},{ scheduler(fn) { /* */ } })`
 
-✅ **hasChanged**
+</details>
+
+<details>
+<summary>hasChanged</summary>
 
 `set` 拦截时比较新旧值，不相同才触发更新
+
+</details>
 
 ## ⚛️ reactive
 
 ### 代理对象
 
-✅ **嵌套 `reactive(reactive(obj))`**
+<details>
+<summary>嵌套 reactive(reactive(obj))</summary>
 
 在 `get` 拦截器增加 `__isReactive`
 
-✅ **代理多次 `let a = reactive(obj), b = reactive(obj)`**
+</details>
+
+<details>
+<summary>代理多次 let a = reactive(obj), b = reactive(obj)</summary>
 
 通过 `proxyMap` 缓存已代理过的 `target`
 
-✅ **劫持 `key in obj` 操作**
+</details>
+
+<details>
+<summary>劫持 key in obj 操作</summary>
 
 通过 `has` 拦截函数代理
 
-✅ **使用 `for...in` 循环遍历对象**
+</details>
+
+<details>
+<summary>使用 for...in 循环遍历对象</summary>
 
 如果新增 `key` 则用 `ownKeys` 拦截，如果修改 `key` 在 `set` 里做判断是设置还是添加
 
-✅ **浅响应与深响应**
+</details>
+
+<details>
+<summary>浅响应与深响应</summary>
 
 浅响应直接返回原始值，深响应调用 `reactive` 将结果包装成响应式数据后返回
 
-✅ **只读与浅只读**
+</details>
+
+<details>
+<summary>只读与浅只读</summary>
 
 同上条，但要在 `set`、`deleteProperty`、`get` 拦截函数分别处理
 
+</details>
+
 ### 代理数组
 
-✅ **通过索引访问数组元素：`arr[0]`**
+<details>
+<summary>通过索引访问数组元素：arr[0]</summary>
 
 在 `trigger` 中，如果是 `ADD`，则在 `depsMap` 中取出 `key` 为 `length` 的 `effectFn` 添加到 `effectsToRun` 中
 
-✅ **访问修改数组的长度：`arr.length`**
+</details>
+
+<details>
+<summary>访问修改数组的长度：arr.length</summary>
 
 在 `trigger` 中，如果是数组且 `key` 为 `length`，则在 `depsMap` 中取出 `newLength < key` 的 `effects` 遍历添加到 `effectsToRun` 中
 
-✅ **把数组作为对象，使用 `for...in` 循环遍历**
+</details>
+
+<details>
+<summary>把数组作为对象，使用 for...in 循环遍历</summary>
 
 如果是数组则在 `ownKeys` 拦截函数中，用 `length` 作为 `key` 并建立响应联系
 
-✅ **使用 `for...of` 迭代遍历数组**
+</details>
+
+<details>
+<summary>使用 for...of 迭代遍历数组</summary>
 
 只要在副作用函数与数组的长度和索引直接建立响应联系即可，上面几条已实现
 
-✅ **数组的原型方法，`concat/join/every/some/find/findIndex/includes` 等**
+</details>
+
+<details>
+<summary>数组的原型方法，`concat/join/every/some/find/findIndex/includes` 等</summary>
 
 重写此类方法，先在 代理对象上查找，未找到再到 raw 原始数组里查找 Ï
 
-✅ **隐式修改数组长度的栈方法：`push/pop/shift/unshift/splice`**
+</details>
+
+<details>
+<summary>隐式修改数组长度的栈方法：`push/pop/shift/unshift/splice`</summary>
 
 重写此类方法，因为会改变长度，所以只收集数组自身的变化产生的依赖。定义 `shouldTrack`，在执行前后赋值 `true` 和 `false`，同时在 `track` 中判断是否应该收集依赖
+
+</details>
 
 ## ⚛️ computed
 
 与 `reactive` 相似，不同点：
 
-✅ **`computed` 中副作用函数不会立即执行**
+<details>
+<summary>computed 中副作用函数不会立即执行</summary>
 
 `effect` 第二个参数增加 `options.lazy = true`
 
-✅ **依赖改变时不会计算，只有取的时候才会去计算**
+</details>
+
+<details>
+<summary>依赖改变时不会计算，只有取的时候才会去计算</summary>
 
 使用 `value`、`dirty`、`effect` 的 `scheduler` 参数来控制缓存和计算
 
-✅ **`effect` 中使用 `computed` 的值引发 `effect` 嵌套**
+</details>
+
+<details>
+<summary>effect 中使用 computed 的值引发 effect 嵌套</summary>
 
 当读取计算属性的值时，手动调用 `track` 进行追踪；当计算属性值变化时，手动调用 `trigger` 触发响应
+
+</details>
 
 ## ⚛️ watch
 
 本质是观测一个响应式数据，当数据发生变化时通知并执行相应的回调函数
 
-✅ **深度观测对象**
+<details>
+<summary>深度观测对象</summary>
 
 递归访问
 
-✅ **支持接收 `getter` 函数**
+</details>
+
+<details>
+<summary>支持接收 getter 函数</summary>
 
 判断是否为函数
 
-✅ **回调函数接收旧值与新值**
-✅ **立即执行的 `watch`**
+</details>
+
+<details>
+<summary>回调函数接收旧值与新值</summary>
+</details>
+
+<details>
+<summary>立即执行的 watch</summary>
 
 提取 `scheduler` 为单独的 `job` 函数，当 `options.immediate` 为 `true` 时立即执行 `job`
 
-✅ **回调执行时机**
+</details>
+
+<details>
+<summary>回调执行时机</summary>
 
 增加 `options.flush` 参数，当为 `post` 时，使用 `Promise.resolve().then(job)` 执行 `job`，
 默认 `sync` 为立即执行
 
-✅ **过期的副作用**
+</details>
+
+<details>
+<summary>过期的副作用</summary>
 
 增加 `onInvalidte` 函数，调用回调函数之前先调用过期回调
+
+</details>
 
 ## ⚛️ ref
 
 本质是一个“包裹对象”。因为 `JavaScript` 的 `Proxy` 无法提供对原始值的代理，所以需要用一层对象来包裹，简介实现原始值的响应式方案。由于“包裹对象”本质上与普通对象没有任何区别，为了区分 `ref` 与普通对象，我们为“包裹对象”定义了 `__v_isRef` 为 `true` 的属性，用来表示 `ref`
 
-✅ **普通 `ref`**
-✅ **解决响应丢失问题**
+<details>
+<summary>普通 ref</summary>
+</details>
+
+<details>
+<summary>解决响应丢失问题</summary>
 
 增加 `toRef`、`toRefs`
 
-✅ **自动脱 `ref`**
+</details>
+
+<details>
+<summary>自动脱 ref</summary>
+</details>
 
 # 渲染器
 
 ## ⚛️ 渲染器设计
 
-✅ **渲染器与响应系统的结合**
+<details>
+<summary>渲染器与响应系统的结合</summary>
 
 利用响应系统的能力，自动调用渲染器完成页面的渲染与更新
 
-✅ **渲染器的基本概念**
+</details>
+
+<details>
+<summary>渲染器的基本概念</summary>
 
 虚拟 `DOM` 用 `virtual DOM` 来表达，简称 `vnode`
 
@@ -189,25 +282,37 @@
 
 在渲染时，可能会多次调用，由于传入前后的 `vnode` 值不同，我们需要 `patch` 函数来比较、剪裁传进来的 `vnode` ，再挂载
 
-✅ **自定义渲染器**
+</details>
+
+<details>
+<summary>自定义渲染器</summary>
 
 以浏览器为渲染目标平台，编写 `vnode` 结构
 
 将浏览器特有 `API` 抽离为配置项，该配置项可以作为 `createRenderer` 函数的参数
 
+</details>
+
 ## ⚛️ 挂载与更新
 
-✅ **挂载子节点和元素的属性**
+<details>
+<summary>挂载子节点和元素的属性</summary>
 
 挂载时，如果 `children` 子元素为数组，要遍历调用 `patch` 重新挂载
 
 如果存在 `props` ，使用 `el[key] = vnode.props[key]` 直接设置 ？
 
-✅ **HTML Attributes 与 DOM Properties**
+</details>
+
+<details>
+<summary>HTML Attributes 与 DOM Properties</summary>
 
 **`HTML Attributes` 的作用是设置与之对应的初始值**。一旦值改变，那么 `DOM Properties` 始终存储当前值，而通过 `getAttribute` 函数得到的值依然是初始值
 
-✅ **正确地设置元素属性**
+</details>
+
+<details>
+<summary>正确地设置元素属性</summary>
 
 先获取 `el` 本身 `key` 的类型，比如 `disabled`
 
@@ -216,7 +321,10 @@
 
 如果 `vnode.props` 中的属性不具有对应的 `DOM Properties`，则使用 `setAttribute` 来完成属性设置
 
-✅ **class 的处理**
+</details>
+
+<details>
+<summary>class 的处理</summary>
 
 ```js
 class: 'foo bar'
@@ -226,21 +334,33 @@ class: ['foo', { bar: true }]
 
 分别针对三种情况进行格式化，最后调用 `el.className = 'foo bar'` 进行设置
 
-🟥 **style 的处理**
+</details>
+
+<details>
+<summary>style 的处理</summary>
 
 与 `class` 类似
 
-✅ **卸载操作**
+</details>
+
+<details>
+<summary>卸载操作</summary>
 
 把 `el` 和 `vnode` 绑定起来，更新时如果无新 `vnode` ，则卸载
 
 把卸载函数封装起来，因为后面要清除 `el` 事件、调用组件的生命周期等
 
-✅ **区分 vnode 的类型**
+</details>
+
+<details>
+<summary>区分 vnode 的类型</summary>
 
 在更新时判断 `vnode.type` 做不同的 `patch`
 
-✅ **事件的处理**
+</details>
+
+<details>
+<summary>事件的处理</summary>
 
 约束在 `props` 中以 `on` 开头的都算作事件
 
@@ -248,7 +368,10 @@ class: ['foo', { bar: true }]
 
 使用 `invoker` 既可以提升性能也可以解决事件冒泡与事件更新直接相互影响的问题( 🍓 **invoker 相关代码极其巧妙，可以品尝一下** )
 
-✅ **事件冒泡与更新时机问题**
+</details>
+
+<details>
+<summary>事件冒泡与更新时机问题</summary>
 
 可能存在子元素点击事件发生后冒泡到父元素，但父元素初始并没有绑定点击事件，而是在不确定的微任务队列中绑定的，所以会触发父元素的点击事件。
 
@@ -258,7 +381,10 @@ class: ['foo', { bar: true }]
 
 在触发时使用 `e.timeStamp` 来获取触发时间 (**记录从页面初始化完成到用户点击的那一刻所经过的时长**) ，比较两者时间即可
 
-✅ **更新子节点**
+</details>
+
+<details>
+<summary>更新子节点</summary>
 
 1️⃣ 根据新旧节点更新 `props`
 
@@ -288,11 +414,17 @@ class: ['foo', { bar: true }]
 
   旧 `children` 类型为 空 ：都为空，什么也不做
 
-✅ **文本节点和注释节点**
+</details>
+
+<details>
+<summary>文本节点和注释节点</summary>
 
 用 `Symbol()` 增加文本和注释节点的类型，在 `patch` 阶段做判断。对于使用到的 `DOM` 操作封装起来
 
-✅ **Fragment**
+</details>
+
+<details>
+<summary>Fragment</summary>
 
 - 为什么存在？
 
@@ -324,7 +456,12 @@ class: ['foo', { bar: true }]
 
 📢 `unmount` 函数也要支持对 `Fragment` 类型的处理
 
+</details>
+
 ## ⚛️ 简单 Diff 算法
+
+<details>
+<summary>减少 DOM 操作的性能开销</summary>
 
 ```js
 const oldVnode = [
@@ -364,11 +501,12 @@ const newVnode = [
 ]
 ```
 
-✅ **减少 DOM 操作的性能开销**
-
 不要重复的销毁和创建 `DOM` ，要找到可以复用的 `DOM` 节点
 
-✅ **DOM 复用与 key 的作用**
+</details>
+
+<details>
+<summary>DOM 复用与 key 的作用</summary>
 
 用 `key` 是否相等来代表这个 `DOM` 可以复用
 
@@ -376,30 +514,45 @@ const newVnode = [
 
 - 如果 `key` 相同，则 `patch` ，更新内容
 
-✅ **找到需要移动的元素**
+</details>
+
+<details>
+<summary>找到需要移动的元素</summary>
 
 在循环开始前定义 `lastIndex`
 
 - 每次循环如果 `index < lastIndex` ，说明此节点需要移动
 - 否则 `lastIndex = index`
 
-✅ **如何移动元素**
+</details>
+
+<details>
+<summary>如何移动元素</summary>
 
 找到上一个节点，如果上一个节点存在，则调用 `insert`
 
-✅ **添加新元素**
+</details>
+
+<details>
+<summary>添加新元素</summary>
 
 在循环新节点时，每层都定义 `find = false`
 
 如果找到 `key` 相等的则说明有可以复用的节点， `find = true` 。否则执行 `patch` 挂载
 
-✅ **移除不存在的元素**
+</details>
+
+<details>
+<summary>移除不存在的元素</summary>
 
 新节点循环结束后，单独循环旧节点，如果找不到 `key` 相等的，说明此旧节点不需要复用，执行卸载操作
 
+</details>
+
 ## ⚛️ 双端 Diff 算法
 
-✅ **双端比较的原理**
+<details>
+<summary>双端比较的原理</summary>
 
 是一种对新旧两组子节点的两个端点进行比较的算法
 
@@ -421,24 +574,38 @@ const newVnode = [
 
 **新头部节点**与**旧尾部节点**相同，需要更新 `patch`、移动旧节点到 `oldStartVnode.el` 前、更新索引
 
-✅ **双端比较的优势**
+</details>
+
+<details>
+<summary>双端比较的优势</summary>
 
 可以减少对 `DOM` 移动的操作
 
-✅ **非理想状况的处理方式**
+</details>
+
+<details>
+<summary>非理想状况的处理方式</summary>
 
 在旧节点中寻找 `node.key === newStartVNode.key` 的节点作为要移动的节点的索引 `idxInOld`
 
 接下来进行 `patch`、移动到 `oldStartVNode.el` 前、将 `oldChildren[idxInOld]` 置为 `undefined`、更新索引
 
-✅ **添加新元素**
+</details>
+
+<details>
+<summary>添加新元素</summary>
 在上一步基础上，增加 `idxInOld` 小于 0 ，也就是没找到的逻辑，也就是新增，调用 `patch(null, newStartVNode, container, oldStartVNode.el)`、更新索引
 
 并且在 `while` 结束后，还要考虑 `oldEndIdx < oldStartIdx && newStartIdx <= newEndIdx` 的情况，说明更新过程中有遗漏新节点，所以循环遗漏的新节点进行挂载
 
-✅ **移除不存在的元素**
+</details>
+
+<details>
+<summary>移除不存在的元素</summary>
 
 在上一步的基础上，增加 `newEndIdx < newStartIdx && oldStartIdx <= oldEndIdx` 的情况，说明在更新过程中，有遗漏旧节点，说明应该进行卸载
+
+</details>
 
 ## ⚛️ 快速 Diff 算法
 
@@ -446,7 +613,8 @@ const newVnode = [
 
 快速 `Diff` 算法包含预处理步骤，这是借鉴了纯文本 `Diff` 算法的思路
 
-✅ **相同的前置元素和后置元素**
+<details>
+<summary>相同的前置元素和后置元素</summary>
 
 1. 从前往后依次对比，调用 `patch` 更新相同的**前置节点**
 
@@ -456,7 +624,10 @@ const newVnode = [
 
 4. 如果新节点遍历完 旧节点没遍历完，需要卸载，用 `(j > newEnd && j <= oldEnd)` 来判断
 
-✅ **判断是否需要进行 DOM 移动操作**
+</details>
+
+<details>
+<summary>判断是否需要进行 DOM 移动操作</summary>
 
 5. 若都不符合上面的条件，新增 `else` 分支
 
@@ -470,7 +641,10 @@ const newVnode = [
 
 除此之外，还需一个数量标识代表**已经更新过的节点数量**，已经更新的数量应该小于新的一组子节点需要更新的节点数量，如果超过则代表需要卸载
 
-✅ **如何移动元素**
+</details>
+
+<details>
+<summary>如何移动元素</summary>
 
 6. 根据 `source` 数组计算最长递增子序列 `seq`（`seq` 里面是递增的，所以符合的都不用移动）
 
@@ -482,7 +656,10 @@ const newVnode = [
 
 否则 `s--`
 
-✅ **最长递增子序列**
+</details>
+
+<details>
+<summary>最长递增子序列</summary>
 
 ```js
 // 动态规划 O(n^2)
@@ -591,15 +768,21 @@ function getSequence(nums) {
 }
 ```
 
-✅ **总结**
+</details>
+
+<details>
+<summary>总结</summary>
 
 快速 `Diff` 算法在实测中性能最优。它借鉴了文本 `Diff` 中的预处理思路，先处理新旧两组子节点中相同的前置节点和后置节点。当前置节点和后置节点全部处理完毕后，如果无法简单地通过挂载新节点或者卸载已经不存在的节点来完成更新，则需要根据节点的索引关系，构造出一个最长递增子序列。最长递增子序列所指向的节点即为不需要移动的节点
+
+</details>
 
 # 组件化
 
 ## ⚛️ 组件的实现原理
 
-✅ **渲染组件**
+<details>
+<summary>渲染组件</summary>
 
 - 如何描述组件
 
@@ -611,7 +794,10 @@ function getSequence(nums) {
 
 在 `patch` 判断 `vnode.type` 是否为 `object`，并继续执行 `mountComponent` 或者 `patchComponent`
 
-✅ **组件状态与自更新**
+</details>
+
+<details>
+<summary>组件状态与自更新</summary>
 
 - 如何实现组件状态的初始化
 
@@ -623,7 +809,10 @@ function getSequence(nums) {
 
 实现一个调度器，使得在一定时间内无论对响应式数据进行多少次修改，副作用函数只会执行一次
 
-✅ **组件实例与生命周期**
+</details>
+
+<details>
+<summary>组件实例与生命周期</summary>
 
 组件实例是一个状态集合，它维护着组件运行过程中的所有信息，包括生命周期、组件渲染的子树（subTree）、是否已挂载等等
 
@@ -637,7 +826,10 @@ const instance = {
 
 由于已经可以区分是否挂载和更新，因此，可以在合适的时机调用组件对应的生命周期钩子
 
-✅ **props 与组件的被动更新**
+</details>
+
+<details>
+<summary>props 与组件的被动更新</summary>
 
 1. 为组件传递的 `props` 数据，即组件的 `vnode.props`
 
@@ -653,7 +845,10 @@ const instance = {
 
 由于 `props` 数据与组件自身的状态都需要暴露在渲染函数中，并使得 `render` 能够通过 `this` 访问他们，所以需要封装一个渲染上下文对象（使用 `Proxy` 来代理 `state` 或者 `props`）
 
-✅ **setup 函数的作用与实现**
+</details>
+
+<details>
+<summary>setup 函数的作用与实现</summary>
 
 `setup` 只会在挂载时执行一次，返回值可以有两种情况：
 
@@ -692,13 +887,19 @@ const Comp = {
 
 4. 渲染上下文 `renderContext` 也应该正确处理 `setupState` ，因为 `setup` 函数返回的数据状态也应该暴露到渲染环境
 
-✅ **组件事件与 `emit` 的实现**
+</details>
+
+<details>
+<summary>组件事件与 `emit` 的实现</summary>
 
 定义一个 `emit` 函数，放在 `setupContext` 中
 
 `emit` 函数用来寻找 `props` 中事件的名称，但是在处理 `props` 时，我们只处理了组件选项对象中显示声明为 `props` 的属性。所以我们在处理 `props` 时，还要加一个判断，当 `vnode.props.key` 以 `On` 开头时看做事件，也放到组件选项对象 `props` 中
 
-✅ **插槽的工作原理与实现**
+</details>
+
+<details>
+<summary>插槽的工作原理与实现</summary>
 
 子组件 `MyComponent`
 
@@ -748,13 +949,19 @@ function render() {
 
 可以直观的看到，渲染插槽内容的过程就是调用插槽函数并渲染，同样我们需要在 `renderContext` 中对 `$slots` 的访问做代理
 
-✅ **注册生命周期**
+</details>
+
+<details>
+<summary>注册生命周期</summary>
 
 以 `onMounted` 为例，首先对于不同组件在 `setup` 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 `currentInstance` 变量，然后在 `onMounted` 函数内判断是否存在 `currentInstance` ，并保存在 `currentInstance.mounted` 数组中。调用时需要遍历执行
 
+</details>
+
 ## ⚛️ 异步组件与函数式组件
 
-✅ **异步组件要解决的问题**
+<details>
+<summary>异步组件要解决的问题</summary>
 
 本质也是一个组件，返回 `setup` 或者 `render` ，指以异步的方式加载并渲染一个组件，这在代码分割、服务端下发组件等场景中尤为重要。异步组件的实现用户可以自定义实现，但整体实现比较复杂，考虑的边界情况也比较多，所以需要在框架层面为异步组件提供更好的封装与支持：
 
@@ -766,7 +973,10 @@ function render() {
 
 - 组件加载失败时，为用户提供重试的能力
 
-✅ **异步组件的实现原理**
+</details>
+
+<details>
+<summary>异步组件的实现原理</summary>
 
 ```js
 const LoadingComponent = {
@@ -790,7 +1000,10 @@ const AsyncComp = defineAsyncComponent({
 })
 ```
 
-✅ **函数式组件**
+</details>
+
+<details>
+<summary>函数式组件</summary>
 
 使用
 
@@ -824,9 +1037,12 @@ if (isFunctional) {
 }
 ```
 
+</details>
+
 ## ⚛️ 内建组件和模块
 
-✅ **KeepAlive 组件的实现原理**
+<details>
+<summary>KeepAlive 组件的实现原理</summary>
 
 本质为一个 `VNode` ，里面包含 `setup` 、 `_isKeepAlive` ，实现需要渲染器层面的支持。
 
@@ -840,7 +1056,10 @@ if (isFunctional) {
 
 支持根据规则进行缓存：定义 `include` 和 `exclude`，如果匹配到则不缓存
 
-✅ **Teleport 组件的实现原理**
+</details>
+
+<details>
+<summary>Teleport 组件的实现原理</summary>
 
 `Teleport` 也需要渲染器支持，不过 `Teleport` 组件的渲染逻辑要从渲染器中分离出来，这么做有两个好处
 
@@ -871,7 +1090,10 @@ if (isFunctional) {
 
 所以我们需要在组件挂载时判断为 `Teleport` 组件，调用组件选项中定义的 `process` 函数将渲染控制权完全交接过去
 
-✅ **Transition 组件的实现原理**
+</details>
+
+<details>
+<summary>Transition 组件的实现原理</summary>
 
 核心原理
 
@@ -904,6 +1126,8 @@ if (isFunctional) {
 
 `vnode.transition.beforeEnter` 函数做的也只是给 `DOM` 元素增加或者移除 `className`
 
+</details>
+
 # 编译器
 
 [编译器相关流程图](【腾讯文档】编译器https://docs.qq.com/flowchart/DVVpiTEVOUkFadkN5)
@@ -913,7 +1137,9 @@ if (isFunctional) {
 编译技术是一门包含内容非常多的学科，在 `JavaScript、C` 等通用用途语言的实现上需要掌握较多编译技术知识。但是 `Vue.js` 的模板和 `JSX` 都属于领域特定语言，实现难度属于中、低级别，在这篇章只要掌握基本的编译技术理论即可实现功能
 
 ![完整编译过程流程图](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c244138f40d84e4991f54cdd9eaae494~tplv-k3u1fbpfcp-watermark.image?)
-✅ **模板 DSL 的编译器**
+
+<details>
+<summary>模板 DSL 的编译器</summary>
 
 对于 `Vue.js` 模板编译器来说，源代码就是组件的模板，目标代码就是能在浏览器平台上运行的 `JavaScript` 代码。即 `Vue.js` 模板编译器的模板代码就是渲染函数 `render(){ /.../}`，大致流程为下图
 
@@ -983,7 +1209,10 @@ const code = generate(jsAST)
 
 ![将 Vue.js 模板编译为渲染函数的完整流程](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/71f4175547aa4b15a94dcdf00e934bb7~tplv-k3u1fbpfcp-watermark.image?)
 
-✅ **parse 的实现原理与状态机**
+</details>
+
+<details>
+<summary>parse 的实现原理与状态机</summary>
 
 - 对模板的标记化
 
@@ -1012,7 +1241,10 @@ const tokens = [
 ]
 ```
 
-✅ **构造 AST**
+</details>
+
+<details>
+<summary>构造 AST</summary>
 
 我们的模板最终对应的 `AST` 结构为
 
@@ -1042,7 +1274,10 @@ const ast = {
 
 所以我们在构造 `AST` 过程，就是对 `Token` 列表进行扫描。定义 `elementStack` 用来维护元素间的父子关系。每遇到**开始标签节点**就创建一个 `Element` 类型的 `AST` 节点
 
-✅ **AST 的转换与插件化架构**
+</details>
+
+<details>
+<summary>AST 的转换与插件化架构</summary>
 
 `AST` 转换指对 `AST` 进行一系列操作，将其转换为新的 `AST` 的过程。新的 `AST` 可以是原语言或者原 `DSL` 的描述，也可以是其他语言或者其他 `DSL` 的描述。例如我们对模板 `AST` 进行转换为 `JavaScript AST`。在编译器一开始的流程图中， `transform` 函数就是用来完成 `AST` 转换工作的
 
@@ -1153,7 +1388,10 @@ export const traverseNode = (ast, context) => {
 }
 ```
 
-✅ **将模板 AST 转换为 `JavaScript AST`**
+</details>
+
+<details>
+<summary>将模板 AST 转换为 `JavaScript AST`</summary>
 
 为什么要将模板 `AST` 转换为 `JavaScript AST`？
 
@@ -1361,7 +1599,10 @@ export const transformRoot = node => {
 
 经过这一步后，模板 `AST` 将转换为对应的 `JavaScript AST` ，并且可以通过根节点的 `node.jsNode` 来访问转换后的 `JavaScript AST`
 
-✅ **代码生成**
+</details>
+
+<details>
+<summary>代码生成</summary>
 
 代码生成本质上是字符串拼接的艺术
 
@@ -1445,14 +1686,16 @@ function genReturnStatement(node, context) {
 // ...
 ```
 
+</details>
+
 ## ⚛️ 解析器
 
 解析器（`parser`）本质是一个状态机，下面将更多的利用正则表达式来实现 `HTML` 解析器
 
 关于 `HTML` 文本解析， `WHATWG` 定义了完整的错误处理和状态机的状态迁移流程，例如 `DATA`、`CDATA`、`RCDATA`、`RAWTEXT` 等
 
-✅ **文本模式及其对解析器的影响**
-
+<details>
+<summary>文本模式及其对解析器的影响</summary>
 文本模式指的是**解析器**在工作时进入的一种特殊状态，在不同的特殊状态下，解析器对文本的解析行为会有所不同
 
 - 默认 `DATA` 模式
@@ -1478,7 +1721,10 @@ function genReturnStatement(node, context) {
 | `RAWTEXT` | 否           | 否                 |
 | `CDATA`   | 否           | 否                 |
 
-✅ **递归下降算法构造模板 AST**
+</details>
+
+<details>
+<summary>递归下降算法构造模板 AST</summary>
 
 解析器的基本架构模型
 
@@ -1576,7 +1822,10 @@ function parseElement(context, ancestors) {
 
 从上面的两段代码可以看到 `parseChildren` 是核心，在 `parseChildren` 运行过程中，为了处理标签节点，会调用 `parseElement` 解析函数，这会间接调用 `parseChildren` ，并产生新的状态机。随着标签嵌套层次的增加，会一直调用 `parseChildren` ，这就是“递归下降”中“递归”的含义。而上下级 `parseChildren` 会各自创建自己的模板 `AST` ，最终会构造出一棵树结构的 `AST` ，这就是“下降”的含义
 
-✅ **状态机的开启与停止**
+</details>
+
+<details>
+<summary>状态机的开启与停止</summary>
 
 当解析器遇到开始标签时，会将该标签压入父级节点栈，同时开启新的状态机
 
@@ -1596,7 +1845,10 @@ function isEnd(context, ancestors) {
 }
 ```
 
-✅ **解析标签节点**
+</details>
+
+<details>
+<summary>解析标签节点</summary>
 
 ```js
 function parseElement(context, ancestors) {
@@ -1660,7 +1912,10 @@ function parseTag(context, type = 'start') {
 }
 ```
 
-✅ **解析属性**
+</details>
+
+<details>
+<summary>解析属性</summary>
 
 上一节的 `parseTag` 会消费整个开始标签，意味着解析属性的过程也要放在这个过程中
 
@@ -1708,7 +1963,10 @@ const ast = {
 }
 ```
 
-✅ **解析文本与解析 HTML 实体**
+</details>
+
+<details>
+<summary>解析文本与解析 HTML 实体</summary>
 
 - 解析文本
 
@@ -1886,34 +2144,79 @@ function decodeHtml(rawText, asAttr = false) {
 }
 ```
 
-✅ **解析插值与注释**
+</details>
+
+<details>
+<summary>解析插值与注释</summary>
 
 解析器在解析插值时，只需要将文本插值的开始定界符与结束定界符之间的内容提取出来，作为 `JavaScript` 表达式即可
 
+</details>
+
 ## ⚛️ 编译优化
 
-🟥 **动态节点收集与补丁标志**
+编译优化指的是编译器将模板编译为渲染函数的过程中，尽可能更多地提取关键信息，也就是尽可能地区分动态与静态内容，并针对不同的内容采用不同的优化策略
 
-🟥 **Block 树**
+<details>
+<summary>动态节点收集与补丁标志</summary>
 
-🟥 **静态提升**
+- 传统 Diff 算法的问题
 
-🟥 **预字符串化**
+- Block 与 PatchFlags
 
-🟥 **缓存内联事件处理函数**
+- 收集动态节点
 
-🟥 **v-once**
+- 渲染器的运行时支持
+
+</details>
+
+<details>
+<summary>Block 树</summary>
+
+- 带有 v-if 指令的节点
+
+- 带有 v-for 指令的节点
+
+- Fragment 的稳定性
+
+</details>
+
+<details>
+<summary>静态提升</summary>
+</details>
+
+<details>
+<summary>预字符串化</summary>
+</details>
+
+<details>
+<summary>缓存内联事件处理函数</summary>
+</details>
+
+<details>
+<summary>v-once</summary>
+</details>
 
 # 服务端渲染
 
 ## ⚛️ 同构渲染
 
-🟥 **CSR、SSR 以及同构渲染**
+<details>
+<summary>CSR、SSR 以及同构渲染</summary>
+</details>
 
-🟥 **将虚拟 DOM 渲染为 HTML 字符串**
+<details>
+<summary>将虚拟 DOM 渲染为 HTML 字符串</summary>
+</details>
 
-🟥 **将组件渲染为 HTML 字符串**
+<details>
+<summary>将组件渲染为 HTML 字符串</summary>
+</details>
 
-🟥 **客户端激活的原理**
+<details>
+<summary>客户端激活的原理</summary>
+</details>
 
-🟥 **编写同构的代码**
+<details>
+<summary>编写同构的代码</summary>
+</details>
