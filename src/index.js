@@ -27,7 +27,9 @@ import {
   defineAsyncComponent,
   KeepAlive,
   Teleport,
-  Transition
+  Transition,
+  createBlock,
+  openBlock
 } from './runtime/index.js'
 import { compile } from './compiler/index.js'
 export default {
@@ -57,5 +59,7 @@ export default {
   KeepAlive,
   Teleport,
   Transition,
-  compile
+  compile,
+  createBlock,
+  openBlock
 }

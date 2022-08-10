@@ -263,21 +263,43 @@ export function createRenderer(options = browserOptions) {
     const el = (n2.el = n1.el)
     const oldProps = n1.props
     const newProps = n2.props
-    // 第一步：更新 props
-    for (const key in newProps) {
-      if (newProps[key] !== oldProps[key]) {
-        // 新旧不相等
-        patchProps(el, key, oldProps[key], newProps[key])
+
+    if (n2.patchFlags) {
+      // 靶向更新
+      if (n2.patchFlags === 2) {
+        // 更新 class
+        patchProps(el, 'class', oldProps.class, newProps.class)
+      } else if (n2.patchFlags === 3) {
+        // 更新 style
+      }
+    } else {
+      // 第一步：更新 props
+      for (const key in newProps) {
+        if (newProps[key] !== oldProps[key]) {
+          // 新旧不相等
+          patchProps(el, key, oldProps[key], newProps[key])
+        }
+      }
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          // 旧 props 的值不在新 props 中
+          patchProps(el, key, oldProps[key], null)
+        }
       }
     }
-    for (const key in oldProps) {
-      if (!(key in newProps)) {
-        // 旧 props 的值不在新 props 中
-        patchProps(el, key, oldProps[key], null)
-      }
+    // 第二步：更新 children
+    if (n2.dynamicChildren) {
+      // 只更新动态节点
+      patchBlockChildren(n1, n2)
+    } else {
+      patchChildren(n1, n2, el)
     }
-    // 第二部：更新 children
-    patchChildren(n1, n2, el)
+  }
+
+  function patchBlockChildren(n1, n2) {
+    for (let i = 0; i < n2.dynamicChildren.length; i++) {
+      patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i])
+    }
   }
 
   /**

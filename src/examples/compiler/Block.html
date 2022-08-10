@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Block 动态节点收集</title>
+    <script src="../../../dist/mini-vue.js"></script>
+    <style>
+      .bar {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { createRenderer, openBlock, createBlock, h, reactive, effect } =
+        MiniVue
+
+      const renderer = createRenderer()
+      const text = reactive({
+        value: '需要更新文字'
+      })
+      const isShow = reactive({
+        value: false
+      })
+      effect(() => {
+        renderer.render(
+          (openBlock(),
+          createBlock('div', null, [
+            h('p', { key: 11 }, text.value, 1),
+            h(
+              'p',
+              { class: isShow.value ? 'bar' : '', key: 22 },
+              '需要更新 class',
+              2
+            )
+          ])),
+          document.getElementById('app')
+        )
+      })
+
+      setTimeout(() => {
+        text.value = 'text2'
+        isShow.value = true
+      }, 1000)
+    </script>
+  </body>
+</html>

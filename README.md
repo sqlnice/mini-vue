@@ -1939,17 +1939,332 @@ function decodeHtml(rawText, asAttr = false) {
 <details>
 <summary>编译优化</summary>
 
-🟥 **动态节点收集与补丁标志**
+编译优化指的是编译器将模板编译为渲染函数的过程中，尽可能的区分动态内容和静态内容，并针对不同的内容采用不同的策略
 
-🟥 **Block 树**
+✅ **动态节点收集与补丁标志**
 
-🟥 **静态提升**
+- 传统 `Diff` 算法的问题
 
-🟥 **预字符串化**
+```js
+<div id="foo">
+  <p class="bar">{{ text }}</p>
+</div>
+```
 
-🟥 **缓存内联事件处理函数**
+对于上面的代码实例，最理想的状态是直接更新 `p` 标签的插值内容。但是在传统 `Diff` 算法中，会逐层级比较差异然后更新差异，会存在很多无意义的比对操作
 
-🟥 **v-once**
+`Vue.js 3` 的编译器会将编译时得到的关键信息“附着”在它生成的虚拟 `DOM` 上，这些信息会通过虚拟 `DOM` 传递给渲染器，最终渲染器根据这些关键信息执行“快捷路径”，从而提升运行时的性能
+
+- `Block` 与 `PatchFlags`
+
+```js
+<div>
+  <div>foo</div>
+  <p>{{ bar }}</p>
+</div>
+```
+
+对于以上代码传统虚拟 `DOM` 是如何描述的：
+
+```js
+const vnode = {
+  type: 'div',
+  children: [
+    { type: 'div', children: 'foo' },
+    { type: 'p', children: ctx.bar }
+  ]
+}
+```
+
+经过编译优化后，编译器将提取到的关键信息“附着”到虚拟 `DOM` 节点上，如下所示：
+
+```js
+const vnode = {
+  type: 'div',
+  children: [
+    { type: 'div', children: 'foo' },
+    { type: 'p', children: ctx.bar, patchFlag: 1 } // 代表动态节点
+  ]
+}
+```
+
+我们可以认为，只要虚拟节点存在 `patchFlag` 属性即是一个动态节点， `patchFlag` 可以定位为以下几种类型：
+
+```js
+const PatchFlags = {
+  TEXT: 1, // 动态的 textContent
+  CLASS: 2, // 动态的 class 绑定
+  STYLE: 3 // 动态的 style 绑定
+  // 其他
+}
+```
+
+有了 `patchFlag` 补丁标志后，我们就可以在虚拟节点的创建节点，把动态子节点提取出来，方便后面使用：
+
+```js
+const vnode = {
+  type: 'div',
+  children: [
+    { type: 'div', children: 'foo' },
+    { type: 'p', children: ctx.bar, patchFlag: PatchFlags.TEXT } // 代表动态节点
+  ],
+  // 将动态节点全部提取到 dynamicChildren 中
+  dynamicChildren: [
+    { type: 'p', children: ctx.bar, patchFlag: PatchFlags.TEXT } // 代表动态节点
+  ]
+}
+```
+
+对于虚拟 `DOM` 节点来说，如果拥有 `dynamicChildren` 属性，即认为它是 `Block` `，Block` 本质上也是一个虚拟 `DOM` 节点。这里需要注意，一个 `Block` 不仅能收集直接动态子节点，还能收集子孙动态子节点
+
+有了 `Block` 概念后，渲染器的更新操作将会以 `Block` 为维度，更新时忽略 `children` ，直接找到该虚拟节点的 `dynamicChildren` 数组并更新，这样就跳过了静态节点
+
+那么什么情况下一个普通的虚拟 `DOM` 节点会变成 `Block` 节点呢？
+
+在我们编写模板时，只有根节点才会变成 `Block` 节点，实际上还有带有 `v-if` 、 `v-for` 等指令的节点也都需要作为 `Block` 节点
+
+```HTML
+<template>
+  <!-- div 是 Block -->
+  <div>
+    <!-- p 不是，因为不是根节点 -->
+    <p>{{ bar }}</p>
+  </div>
+
+  <!-- h1 是 Block -->
+  <h1>
+    <!-- span 不是，因为不是根节点 -->
+    <span :id="dynamicId"></span>
+  </h1>
+</template>
+```
+
+- 收集动态节点
+
+在编译器生成的渲染函数如下：
+
+```js
+render() {
+  return createVNode('div',{id:'foo'},[
+    createVNode('p',null,text,PatchFlags.TEXT)
+  ])
+}
+```
+
+`createVNode` 函数是用来创建虚拟 `DOM` 节点的辅助函数，我们可以在 `createVNode` 函数中进行收集。可以看到 `render` 函数的执行顺序是“内层先执行，外层后执行”，所以需要一个栈结构来存储，详见 [vnode.js](https://github.com/sqlnice/mini-vue/blob/main/src/runtime/vnode.js)
+
+- 渲染器的运行时支持
+
+在传统的节点更新方式 `patchElement` 中，我们增加对 `dynamicChildren` 的支持
+
+```js
+function patchElement(n1, n2) {
+  const el = (n2.el = n1.el)
+  const oldProps = n1.props
+  const newProps = n2.props
+
+  if (n2.patchFlags) {
+    // 靶向更新
+    if (n2.patchFlags === 2) {
+      // 更新 class
+      patchProps(el, 'class', oldProps.class, newProps.class)
+    } else if (n2.patchFlags === 3) {
+      // 更新 style
+    }
+  } else {
+    // 第一步：更新 props
+    for (const key in newProps) {
+      if (newProps[key] !== oldProps[key]) {
+        // 新旧不相等
+        patchProps(el, key, oldProps[key], newProps[key])
+      }
+    }
+    for (const key in oldProps) {
+      if (!(key in newProps)) {
+        // 旧 props 的值不在新 props 中
+        patchProps(el, key, oldProps[key], null)
+      }
+    }
+  }
+  // 第二步：更新 children
+  if (n2.dynamicChildren) {
+    // 只更新动态节点
+    patchBlockChildren(n1, n2)
+  } else {
+    patchChildren(n1, n2, el)
+  }
+}
+
+function patchBlockChildren(n1, n2) {
+  for (let i = 0; i < n2.dynamicChildren.length; i++) {
+    patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i])
+  }
+}
+```
+
+✅ **Block 树**
+
+根节点、`v-if`、`v-for` 等会组成 `Block` 树
+
+由于 `Block` 树会收集所有的动态子孙节点，所以对动态节点的操作是忽略 `DOM` 层级结构的。这会带来额外的问题，即 `v-if`、`v-for` 等结构化指令会影响 `DOM` 层级结构，也会简介导致基于 `Block` 树的比对算法失效，解决方法就是让带有 `v-if`、`v-for` 等指令的节点也作为 `Block` 角色即可
+
+✅ **静态提升**
+
+有如下模板：
+
+```HTML
+<div>
+  <p>Static Text</p>
+  <p class="foo">{{ title }}</p>
+</div>
+```
+
+在没有静态提升的情况下，对应的渲染函数为：
+
+```js
+function render() {
+  return (
+    openBlock(),
+    createBlock('div', null, [
+      createVNode('p', null, 'Static Text'),
+      createVNode('p', { class: 'foo' }, ctx.title, 1 /* TEXT */)
+    ])
+  )
+}
+```
+
+当 `title` 变化时，整个渲染函数都会重新执行，并产生新的**虚拟 DOM**，但是对于第一个 `p` 来说没必要更新，所以把他单独保存起来，第二个 `p` 的 `class` 同理，所以有静态提升后为：
+
+```js
+// 静态节点
+const hoist1 = createVNode('p', null, 'Static Text')
+// 静态 props 对象
+const hoistProp = { class: 'foo' }
+function render() {
+  return (
+    openBlock(),
+    createBlock('div', null, [
+      hoist1, // 静态节点
+      createVNode('p', hoistProp, ctx.title, 1 /* TEXT */)
+    ])
+  )
+}
+```
+
+✅ **预字符串化**
+
+试想这样的模板：
+
+```HTML
+<div>
+  <p></p>
+  <p></p>
+  <p></p>
+  <!-- 20个 P 标签 -->
+  <p></p>
+  <p></p>
+  <p></p>
+</div>
+```
+
+当我们采用静态提升之后，编译后的代码如下所示：
+
+```js
+const hoist1 = createVNode('p', null, null, PatchFlags.HOISTED)
+const hoist2 = createVNode('p', null, null, PatchFlags.HOISTED)
+const hoist3 = createVNode('p', null, null, PatchFlags.HOISTED)
+// 省略 20 个
+function render() {
+  return (
+    openBlock(), createBlock('div', null, [hoist1, hoist2, hoist3 /* ... */])
+  )
+}
+```
+
+预字符串化可以将这些节点序列化为字符串，并生成一个 `Static` 类型的 `VNode`：
+
+```js
+const hoistStatic = createStaticVNode(
+  '<p></p><p></p><p></p>...20个<p></p><p></p>'
+)
+// 省略 20 个
+function render() {
+  return openBlock(), createBlock('div', null, [hoistStatic])
+}
+```
+
+这样做有几个明显的优势：
+
+- 大块的静态内容可以通过 `innerHTML` 进行设置，在性能上具有一定优势
+
+- 减少创建虚拟节点产生的性能开销
+
+- 减少内存占用
+
+✅ **缓存内联事件处理函数**
+
+```HTML
+<Comp @change="a + b"></Comp>
+```
+
+以上模板会被编译为
+
+```js
+function render(ctx) {
+  return h(Comp, {
+    onChange: () => ctx.a + ctx.b
+  })
+}
+```
+
+由于每次渲染时都会重新创建 `props` 对象，`props.onChange` 也是全新的函数，这会造成额外的性能开销，所以需要对内联事件处理函数进行缓存
+
+```js
+function render(ctx, cache) {
+  return h(Comp, {
+    onChange: cache[0] || (cache[0] = $event => ctx.a + ctx.b)
+  })
+}
+```
+
+✅ **v-once**
+
+```HTML
+<section>
+  <div v-once>{{ foo }}</div>
+</section>
+```
+
+以上模板会被编译为：
+
+```js
+function render(ctx, cache) {
+  return openBlock(), createBlock('section', null, [cache[1]||cache[1]=createVNode('div',null,ctx.foo,1 /*TEXT*/)])
+}
+```
+
+既然已经被缓存，那么后续更新导致渲染函数重新执行时，会优先读取缓存的内容。同时，这些被缓存的虚拟节点不会参与 `Diff` 操作，所以实际编译后的代码可能如下：
+
+```js
+function render(ctx, cache) {
+  return (
+    openBlock(),
+    createBlock('section', null, [
+      cache[1] ||
+        (setBlockTracking(-1), // 阻止这段 VNode 被 Block 收集
+        (cache[1] = createVNode('div', null, ctx.foo, 1 /*TEXT*/)),
+        setBlockTracking(1), // 恢复
+        cache[1]) // 整个表达式的值
+    ])
+  )
+}
+```
+
+`setBlockTracking(-1)` 用来暂停节点收集，即使用 `v-once` 包裹的动态节点不会被父级 `Block` 收集，也就不会参与 `Diff` 操作了。`v-once` 指令能从两个方面提升性能：
+
+- 避免组件更新时重新创建虚拟 `DOM` 带来的性能开销。因为虚拟 `DOM` 被缓存了，所以无需重新创建
+
+- 避免无用的 `Diff` 开销。因为被 `v-once` 包裹的虚拟 `DOM` 不会被父级 `Block` 节点收集
 
 </details>
 
@@ -1957,6 +2272,8 @@ function decodeHtml(rawText, asAttr = false) {
 
 <details>
 <summary>同构渲染</summary>
+
+暂时不更
 
 🟥 **CSR、SSR 以及同构渲染**
 

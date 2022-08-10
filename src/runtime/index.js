@@ -1,5 +1,5 @@
 import { createRenderer } from './render'
-import { h, Shape } from './vnode'
+import { h, Shape, createBlock, openBlock } from './vnode'
 import { queueJob } from './scheduler'
 import {
   onBeforeMount,
@@ -29,5 +29,7 @@ export {
   defineAsyncComponent,
   KeepAlive,
   Teleport,
-  Transition
+  Transition,
+  createBlock,
+  openBlock
 }
