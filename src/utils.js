@@ -18,3 +18,7 @@ export function hasChanged(oldValue, newValue) {
     oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
   )
 }
+
+export const camelize = str => {
+  return str.replace(/-(\w)/g, (_, c) => (c ? c.toUpperCase() : ''))
+}

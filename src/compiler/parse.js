@@ -1,4 +1,7 @@
 // 新版解析器
+import { camelize } from '../utils'
+import { NodeTypes, ElementTypes } from './ast'
+import { isVoidTag, isNativeTag } from './index'
 
 // 状态表
 const TextModes = {
@@ -10,7 +13,7 @@ const TextModes = {
 
 /**
  * 解析器入口
- * @param {template string} str
+ * @param {template} str
  */
 export function parse(str) {
   // 上下文对象
@@ -33,9 +36,8 @@ export function parse(str) {
   }
   // 节点栈，初始为空
   const nodes = parseChildren(context, [])
-  console.log('parse函数执行结果：', { type: 'Root', children: nodes })
   // 返回 Root 根节点
-  return { type: 'Root', children: nodes }
+  return { type: NodeTypes.ROOT, children: nodes }
 }
 function parseChildren(context, ancestors) {
   // 用于存储子节点，是最终的返回值
@@ -73,7 +75,35 @@ function parseChildren(context, ancestors) {
     }
     nodes.push(node)
   }
-  return nodes
+
+  let removedWhitespace = false
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]
+    if (node.type === NodeTypes.TEXT) {
+      // 全是空白的节点
+      if (!/[^\t\r\n\f ]/.test(node.content)) {
+        const prev = nodes[i - 1]
+        const next = nodes[i + 1]
+        if (
+          !prev ||
+          !next ||
+          (prev.type === NodeTypes.ELEMENT &&
+            next.type === NodeTypes.ELEMENT &&
+            /[\r\n]/.test(node.content))
+        ) {
+          removedWhitespace = true
+          nodes[i] = null
+        } else {
+          // 压缩空格
+          node.content = ' '
+        }
+      } else {
+        node.content = node.content.replace(/[\t\r\n\f ]+/g, ' ')
+      }
+    }
+  }
+
+  return removedWhitespace ? nodes.filter(Boolean) : nodes
 }
 
 function parseComment(context) {
@@ -88,7 +118,7 @@ function parseComment(context) {
   // 消费注释结束部分
   context.advanceBy('-->'.length)
   return {
-    type: 'Comment',
+    type: NodeTypes.COMMENT,
     content
   }
 }
@@ -101,7 +131,7 @@ function parseElement(context, ancestors) {
   // 解析开始标签
   const element = parseTag(context)
   // 自闭和标签
-  if (element.isSelfClosing) return element
+  if (element.isSelfClosing || isVoidTag(element.tag)) return element
 
   // 切换到正确的模式
   if (['textarea', 'title'].includes(element.tag)) {
@@ -145,10 +175,11 @@ function parseInterpolation(context) {
   context.advanceBy('}}'.length)
 
   return {
-    type: 'Interpolation',
+    type: NodeTypes.INTERPOLATION,
     content: {
-      type: 'Expression',
-      content: decodeHtml(content) // 返回解码后的值
+      type: NodeTypes.SIMPLE_EXPRESSION,
+      content: decodeHtml(content), // 返回解码后的值
+      isStatic: false
     }
   }
 }
@@ -172,7 +203,7 @@ function parseText(context) {
   context.advanceBy(content.length)
 
   return {
-    type: 'Text',
+    type: NodeTypes.TEXT,
     content: decodeHtml(content) // 解码内容
   }
 }
@@ -343,9 +374,15 @@ function parseTag(context, type = 'start') {
   const isSelfClosing = context.source.startsWith('/>')
   // 如果自闭和标签，消费 /> 否则消费 >
   advanceBy(isSelfClosing ? 2 : 1)
+
+  const tagType = isComponent(tag, context)
+    ? ElementTypes.COMPONENT
+    : ElementTypes.ELEMENT
+
   return {
-    type: 'Element',
+    type: NodeTypes.ELEMENT,
     tag,
+    tagType: tagType,
     // 标签属性
     props,
     // 子节点
@@ -355,8 +392,19 @@ function parseTag(context, type = 'start') {
   }
 }
 
+function isComponent(tag) {
+  return !isNativeTag(tag)
+}
+
 /**
  * 解析属性
+ * 模板
+ * <div id="foo" v-show="display"></div>
+ * 解析结果
+ * props = [
+ *  {type: 'Attribute', name: 'id', value: 'foo'},
+ *  {type: 'Directive', name: 'v-show', value: 'display'}
+ * ]
  */
 function parseAttributes(context) {
   const { advanceBy, advanceSpaces } = context
@@ -407,12 +455,41 @@ function parseAttributes(context) {
       advanceBy(value.length)
     }
     advanceSpaces()
-    const isDirective = name.startsWith('@') || name.startsWith('v-')
-    props.push({
-      type: isDirective ? 'Directive' : 'Attribute',
-      name,
-      value
-    })
+
+    if (/^(v-|:|@)/.test(name)) {
+      // Directive
+      let dirName, argContent
+      if (name[0] === ':') {
+        dirName = 'bind'
+        argContent = name.slice(1)
+      } else if (name[0] === '@') {
+        dirName = 'on'
+        argContent = name.slice(1)
+      } else if (name.startsWith('v-')) {
+        ;[dirName, argContent] = name.slice(2).split(':')
+      }
+      props.push({
+        type: NodeTypes.DIRECTIVE,
+        name: dirName,
+        exp: value && {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: value,
+          isStatic: false
+        },
+        arg: argContent && {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: camelize(argContent),
+          isStatic: true
+        }
+      })
+    } else {
+      // Attribute
+      props.push({
+        type: NodeTypes.ATTRIBUTE,
+        name,
+        value
+      })
+    }
   }
 
   return props

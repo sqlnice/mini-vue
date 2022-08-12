@@ -1,7 +1,9 @@
 import { parse } from './parse'
 import { generate } from './codegen'
+import { transform } from './transform'
 export function compile(template) {
   const ast = parse(template)
-  const code = generate(ast.jsNode)
-  return code
+  transform(ast)
+  console.log('transform之后：', ast)
+  return generate(ast.jsNode)
 }

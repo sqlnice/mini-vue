@@ -22,7 +22,6 @@ export function generate(node) {
       context.newLine()
     }
   }
-
   genNode(node, context)
   return context.code
 }
@@ -44,12 +43,14 @@ function genNode(node, context) {
     case 'ArrayExpression':
       genArrayExpression(node, context)
       break
+    case 'Comment':
+      genCommont(node, context)
+      break
   }
 }
 
 function genFunctionDecl(node, context) {
   const { push, ident, deIdent } = context
-  console.log(node)
   push(`function ${node.id.name}`)
   push('(')
   // 设置参数
@@ -63,11 +64,13 @@ function genFunctionDecl(node, context) {
   deIdent()
   push('}')
 }
+
 function genReturnStatement(node, context) {
   const { push } = context
   push('return ')
   genNode(node.return, context)
 }
+
 function genCallExpression(node, context) {
   const { push } = context
   // 获取函数名和参数
@@ -76,16 +79,24 @@ function genCallExpression(node, context) {
   genNodeList(args, context)
   push(')')
 }
+
 function genStringLiteral(node, context) {
   const { push } = context
   push(`'${node.value}'`)
 }
+
 function genArrayExpression(node, context) {
   const { push } = context
   push('[')
   genNodeList(node.elements, context)
   push(']')
 }
+
+function genCommont(node, context) {
+  const { push } = context
+  push(`<!--${node.content}-->`)
+}
+
 function genNodeList(nodes, context) {
   const { push } = context
   for (let i = 0; i < nodes.length; i++) {
