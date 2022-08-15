@@ -1,5 +1,6 @@
 import { NodeTypes } from './ast'
-
+import { capitalize } from '../utils'
+import { ElementTypes } from './ast'
 /**
  * 转换函数 模板 AST -> JavaScript AST
  * @param {*} ast
@@ -102,8 +103,26 @@ function transformComment(node) {
 function transformElement(node) {
   return () => {
     if (node.type !== NodeTypes.ELEMENT) return
+    const tag =
+      node.tagType === ElementTypes.ELEMENT
+        ? `"${node.tag}"`
+        : `resolveComponent("${node.tag}")`
+    const propArr = createPropArr(node)
+    let propStr = propArr.length ? `{ ${propArr.join(', ')} }` : 'null'
+    const vModel = pluck(node.directives, 'model')
+    if (vModel) {
+      const getter = `() => ${createText(vModel.exp)}`
+      const setter = `value => ${createText(vModel.exp)} = value`
+      propStr = `withModel(${tag}, ${propStr}, ${getter}, ${setter})`
+    }
     // 1.创建 h 函数调用语句
-    const callExp = createCallExpression('h', [createStringLiteral(node.tag)])
+    const callExp = createCallExpression('h', [
+      {
+        type: NodeTypes.ELEMENT,
+        value: node.tag,
+        propStr
+      }
+    ])
     // 2.处理 h 函数的参数
     node.children.length === 1
       ? // 如果当前标签节点只有一个子节点，则直接使用子节点的 jsNode 参数
@@ -130,7 +149,7 @@ function transformRoot(node) {
   }
 }
 
-// 创建 StringLiteral 节点
+// 创建字符串节点
 function createStringLiteral(value) {
   return {
     type: 'StringLiteral',
@@ -138,7 +157,7 @@ function createStringLiteral(value) {
   }
 }
 
-// 创建 Identifier 节点
+// 创建标识符节点
 function createIdentifier(name) {
   return {
     type: 'Identifier',
@@ -146,7 +165,7 @@ function createIdentifier(name) {
   }
 }
 
-// 创建 ArrayExpression 节点
+// 创建数组表达式节点
 function createArrayExpression(elements) {
   return {
     type: 'ArrayExpression',
@@ -161,4 +180,45 @@ function createCallExpression(callee, args) {
     callee: createIdentifier(callee),
     arguments: args
   }
+}
+
+// 可以不remove吗？不可以
+function pluck(directives = [], name, remove = true) {
+  const index = directives.findIndex(dir => dir.name === name)
+  const dir = directives[index]
+  if (remove && index > -1) {
+    directives.splice(index, 1)
+  }
+  return dir
+}
+
+function createPropArr(node) {
+  const { props, directives } = node
+  return [
+    ...props.map(prop => `${prop.name}: ${prop.value}`),
+    ...directives.map(dir => {
+      const content = dir.arg?.content
+      const eventName = `on${capitalize(content)}`
+      let exp = dir.exp.content
+      switch (dir.name) {
+        case 'bind':
+          return `${content}: ${createText(dir.exp)}`
+        case 'on':
+          // 以括号结尾，并且不含'=>'的情况，如 @click="foo()"
+          // 当然，判断很不严谨，比如不支持 @click="i++"
+          if (/\([^)]*?\)$/.test(exp) && !exp.includes('=>')) {
+            exp = `$event => (${exp})`
+          }
+          return `${eventName}: ${exp}`
+        case 'html':
+          return `innerHTML: ${createText(dir.exp)}`
+        default:
+          return `${dir.name}: ${createText(dir.exp)}`
+      }
+    })
+  ]
+}
+
+function createText({ content = '', isStatic = true } = {}) {
+  return isStatic ? JSON.stringify(content) : content
 }

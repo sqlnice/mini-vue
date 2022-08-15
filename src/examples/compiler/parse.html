@@ -12,18 +12,18 @@
     <div id="app"></div>
     <script>
       const { compile } = MiniVue
-
+      let template = ''
       // 解析属性
-      // const template = '<div id="foo" v-show="display">hello {{ name }}</div>'
+      // template = '<div id="foo" v-show="display">hello {{ name }}</div>'
       // 文本节点
-      // const template = '<div>Text</div>'
+      // template = '<div><p>Vue</p><p>Tempalte</p></div>'
       // 解析 HTML 实体
-      // const template = '<div>Text&lt</div>'
+      // template = '<div>Text&lt</div>'
       // 插值
-      const template = '<div>foo {{ bar }} baz</div>'
+      // template = '<div>foo1  {{ bar }} baz</div>'
       // 注释
-      // const template = '<div><!-- comments --><Comp></Comp></div>'
-
+      // template = '<div><!-- comments --><Comp></Comp></div>'
+      template = `<div foo="bar"  @click="add"><p>内容</p></div>`
       const renderFn = compile(template)
       console.log(renderFn)
     </script>

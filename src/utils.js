@@ -13,6 +13,11 @@ export function isString(target) {
 export function isFunction(target) {
   return typeof target === 'function'
 }
+
+export function isNumber(target) {
+  return typeof target === 'number'
+}
+
 export function hasChanged(oldValue, newValue) {
   return (
     oldValue !== newValue && !(Number.isNaN(oldValue) && Number.isNaN(newValue))
@@ -21,4 +26,9 @@ export function hasChanged(oldValue, newValue) {
 
 export const camelize = str => {
   return str.replace(/-(\w)/g, (_, c) => (c ? c.toUpperCase() : ''))
+}
+
+export function capitalize(str) {
+  if (!str) return ''
+  return str[0].toUpperCase() + str.slice(1)
 }

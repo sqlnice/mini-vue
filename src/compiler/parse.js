@@ -42,13 +42,13 @@ export function parse(str) {
 function parseChildren(context, ancestors) {
   // 用于存储子节点，是最终的返回值
   const nodes = []
-  const { source, mode } = context
+  const { mode } = context
   while (!isEnd(context, ancestors)) {
     let node
     // 只有这两个模式才支持 HTML 实体
     if ([TextModes.DATA, TextModes.RCDATA].includes(mode)) {
       // 只有 DATA 模式才支持标签节点的解析
-      if (mode === TextModes.DATA && source[0] === '<') {
+      if (mode === TextModes.DATA && context.source[0] === '<') {
         if (context.source[1] === '!') {
           if (context.source.startsWith('<!--')) {
             // 注释
@@ -369,7 +369,7 @@ function parseTag(context, type = 'start') {
   advanceSpaces()
 
   // 解析属性
-  const props = parseAttributes(context)
+  const [props, directives] = parseAttributes(context)
 
   const isSelfClosing = context.source.startsWith('/>')
   // 如果自闭和标签，消费 /> 否则消费 >
@@ -385,6 +385,7 @@ function parseTag(context, type = 'start') {
     tagType: tagType,
     // 标签属性
     props,
+    directives,
     // 子节点
     children: [],
     // 是否为自闭和标签
@@ -409,6 +410,7 @@ function isComponent(tag) {
 function parseAttributes(context) {
   const { advanceBy, advanceSpaces } = context
   const props = []
+  const directives = []
   // 不断消费模板内容，直到遇到标签的结束部分
   while (!context.source.startsWith('>') && !context.source.startsWith('/>')) {
     // 用于匹配属性名称
@@ -468,7 +470,7 @@ function parseAttributes(context) {
       } else if (name.startsWith('v-')) {
         ;[dirName, argContent] = name.slice(2).split(':')
       }
-      props.push({
+      directives.push({
         type: NodeTypes.DIRECTIVE,
         name: dirName,
         exp: value && {
@@ -492,7 +494,7 @@ function parseAttributes(context) {
     }
   }
 
-  return props
+  return [props, directives]
 }
 
 function isEnd(context, ancestors) {

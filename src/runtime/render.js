@@ -140,6 +140,7 @@ export function createRenderer(options = browserOptions) {
       unmount(n1)
       n1 = null
     }
+    // TODO 使用 n2.shapeFlag 来判断
     const { type } = n2
     // Element
     if (isString(type)) {

@@ -1,3 +1,4 @@
+import { NodeTypes } from './ast'
 export function generate(node) {
   const context = {
     // 最终生成的代码
@@ -43,8 +44,14 @@ function genNode(node, context) {
     case 'ArrayExpression':
       genArrayExpression(node, context)
       break
-    case 'Comment':
+    case NodeTypes.INTERPOLATION:
+      genInterpolation(node, context)
+      break
+    case NodeTypes.COMMENT:
       genCommont(node, context)
+      break
+    case NodeTypes.ELEMENT:
+      genElement(node, context)
       break
   }
 }
@@ -92,9 +99,19 @@ function genArrayExpression(node, context) {
   push(']')
 }
 
+function genInterpolation(node, context) {
+  const { push } = context
+  push(`${node.content.content}`)
+}
+
 function genCommont(node, context) {
   const { push } = context
-  push(`<!--${node.content}-->`)
+  push(`'<!--${node.content}-->'`)
+}
+
+function genElement(node, context) {
+  const { push } = context
+  push(`'${node.value}', '${node.propStr}'`)
 }
 
 function genNodeList(nodes, context) {
