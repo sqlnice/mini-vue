@@ -32,6 +32,9 @@ function genNode(node, context) {
     case 'FunctionDecl':
       genFunctionDecl(node, context)
       break
+    case 'Identifier':
+      genIdentifier(node, context)
+      break
     case 'ReturnStatement':
       genReturnStatement(node, context)
       break
@@ -57,8 +60,8 @@ function genNode(node, context) {
 }
 
 function genFunctionDecl(node, context) {
-  const { push, ident, deIdent } = context
-  push(`function ${node.id.name}`)
+  const { push, ident, deIdent, newLine } = context
+  push(`${node.id.name}`)
   push('(')
   // 设置参数
   genNodeList(node.params, context)
@@ -66,10 +69,17 @@ function genFunctionDecl(node, context) {
   push('{')
   // 缩进
   ident()
+  push('const { h } = MiniVue')
+  newLine()
   // 函数体生成代码
   node.body.forEach(n => genNode(n, context))
   deIdent()
   push('}')
+}
+
+function genIdentifier(node, context) {
+  const { push } = context
+  push(node.name)
 }
 
 function genReturnStatement(node, context) {
@@ -111,7 +121,7 @@ function genCommont(node, context) {
 
 function genElement(node, context) {
   const { push } = context
-  push(`'${node.value}', '${node.propStr}'`)
+  push(`'${node.value}', ${node.propStr}`)
 }
 
 function genNodeList(nodes, context) {

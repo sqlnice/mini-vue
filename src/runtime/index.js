@@ -14,6 +14,7 @@ import { defineAsyncComponent } from './apiAsyncComponentLoader'
 import { KeepAlive } from './components/KeepAlive'
 import { Teleport } from './components/Teleport'
 import { Transition } from './components/Trasition'
+import { createApp } from './createApp'
 export {
   createRenderer,
   h,
@@ -31,5 +32,6 @@ export {
   Teleport,
   Transition,
   createBlock,
-  openBlock
+  openBlock,
+  createApp
 }

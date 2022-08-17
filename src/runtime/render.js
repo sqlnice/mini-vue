@@ -70,7 +70,6 @@ const browserOptions = {
         if (!invoker) {
           invoker = el._vei[key] = e => {
             // 如果事件被触发的时间 早于 事件被绑定的时间，说明那时还没有绑定
-            console.log(e.timeStamp, invoker.attched)
             if (e.timeStamp < invoker.attched) return
             // 如果是数组，遍历逐个调用事件处理函数
             if (isArray(invoker.value)) {

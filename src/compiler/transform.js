@@ -142,8 +142,8 @@ function transformRoot(node) {
     const vnodeJSAST = node.children[0].jsNode
     node.jsNode = {
       type: 'FunctionDecl',
-      id: createIdentifier('render'),
-      params: [],
+      id: createIdentifier('with'),
+      params: [createIdentifier('_ctx')],
       body: [{ type: 'ReturnStatement', return: vnodeJSAST }]
     }
   }

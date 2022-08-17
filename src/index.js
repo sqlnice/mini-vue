@@ -29,7 +29,8 @@ import {
   Teleport,
   Transition,
   createBlock,
-  openBlock
+  openBlock,
+  createApp
 } from './runtime/index.js'
 import { compile } from './compiler/index.js'
 export default {
@@ -61,5 +62,6 @@ export default {
   Transition,
   compile,
   createBlock,
-  openBlock
+  openBlock,
+  createApp
 }

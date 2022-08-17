@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>creeateApp</title>
+    <script src="../../../dist/mini-vue.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script>
+      const { compile, createApp, ref, h } = MiniVue
+      const template = `
+      <div>
+        <p>
+         {{this.counter.value}}
+        </p>
+        <button @click="this.add">click</button>
+      </div>
+      `
+      createApp({
+        template,
+        setup() {
+          const counter = ref(0)
+          const add = () => {
+            counter.value++
+          }
+          return { counter, add }
+        }
+      }).mount('#app')
+    </script>
+  </body>
+</html>

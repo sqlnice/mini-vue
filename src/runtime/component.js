@@ -7,7 +7,7 @@ import {
 import { queueJob } from './scheduler'
 import { LifecycleHooks } from './lifeCycle'
 import { isFunction } from '../utils'
-
+import { compile } from '../compiler/index'
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
 export let currentInstance
 export const setCurrentInstance = instance => {
@@ -68,8 +68,6 @@ export function mountComponent(vnode, container, anchor, patch, options) {
   //   }
   // }
 
-  // 获取组件的 render，当选项对象中 setup 存在时可能没有
-  let { render } = componentOptions
   const {
     data,
     beforeCreate,
@@ -94,6 +92,8 @@ export function mountComponent(vnode, container, anchor, patch, options) {
   // 处理 slots （在父组件的模板中，插槽们会被渲染为一个对象放在 children 里面。具体见 mountComponent 函数下面注释
   const slots = vnode.children || {}
 
+  // 获取组件的 render，当选项对象中 setup 存在时可能没有
+  const { render } = componentOptions
   // 组件实例 维护运行过程中所有的信息
   const instance = {
     state,
@@ -102,7 +102,8 @@ export function mountComponent(vnode, container, anchor, patch, options) {
     isMounted: false,
     subTree: null,
     slots,
-    keepAliveCtx: null
+    keepAliveCtx: null,
+    render
   }
   const isKeepAlive = vnode.type.__isKeepAlive
   if (isKeepAlive) {
@@ -142,8 +143,9 @@ export function mountComponent(vnode, container, anchor, patch, options) {
     const setupResult = setup(shallowReadonly(instance.props), setupContext)
     setCurrentInstance(prevInstance)
     if (typeof setupResult === 'function') {
-      if (render) console.error('setup 函数返回渲染函数，render 选项将被忽略')
-      render = setupResult
+      if (instance.render)
+        console.error('setup 函数返回渲染函数，render 选项将被忽略')
+      instance.render = setupResult
     } else {
       // 作为数据状态赋值给 setupResult
       setupState = setupResult
@@ -187,12 +189,21 @@ export function mountComponent(vnode, container, anchor, patch, options) {
     }
   })
 
+  if (!componentOptions.render && componentOptions.template) {
+    let { template } = componentOptions
+    if (template[0] === '#') {
+      const el = document.querySelector(template)
+      template = el ? el.innerHTML : ''
+    }
+    instance.render = new Function('_ctx', compile(template))
+    console.log('渲染render：', instance.render)
+  }
   // created
   created && created.call(renderContext)
   effect(
     () => {
       // 获取应该渲染的 vnode
-      const subTree = render.call(renderContext, renderContext)
+      const subTree = instance.render.call(renderContext, renderContext)
       if (!instance.isMounted) {
         // beforeMounte
         beforeMounte && beforeMounte.call(renderContext)
