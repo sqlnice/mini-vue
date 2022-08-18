@@ -739,7 +739,7 @@ const Comp = {
 </tempalte>
 ```
 
-子组件 `MyComponent` 的模板会被编译为以下渲染函数
+子组件 `MyComponent` 的模板会被编译为以下渲染函数：
 
 ```js
 function render() {
@@ -762,7 +762,7 @@ function render() {
 </MyComponent>
 ```
 
-父组件模板会被编译为以下渲染函数
+父组件模板会被编译为以下渲染函数：
 
 ```js
 function render() {
@@ -894,7 +894,7 @@ if (isFunctional) {
 </Teleport>
 ```
 
-会被编译为
+会被编译为：
 
 ```js
 {
@@ -916,7 +916,7 @@ if (isFunctional) {
 
 - 当 `DOM` 元素被卸载时，不要立即卸载，而是等到附加到该 `DOM` 元素上的动效执行完毕后再卸载它
 
-用户编写的模板
+用户编写的模板：
 
 ```html
 <Transition>
@@ -924,7 +924,7 @@ if (isFunctional) {
 </Transition>
 ```
 
-会被编译为
+会被编译为：
 
 ```js
 {
@@ -960,7 +960,7 @@ if (isFunctional) {
 
 ![Vue.js 模板编译器工作流程](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5f1d0e07fd164e28960bf8af6e29e18f~tplv-k3u1fbpfcp-watermark.image?)
 
-其中模板 `AST` 即用来描述模板的抽象语法树
+其中模板 `AST` 即用来描述模板的抽象语法树：
 
 ```html
 <div>
@@ -968,7 +968,7 @@ if (isFunctional) {
 </div>
 ```
 
-上述模板会被编译为如下所示的 `AST`
+上述模板会被编译为如下所示的 `AST`：
 
 ```js
 const ast = {
@@ -1055,7 +1055,7 @@ const tokens = [
 
 ✅ **构造 AST**
 
-我们的模板最终对应的 `AST` 结构为
+我们的模板最终对应的 `AST` 结构为：
 
 ```js
 const ast = {
@@ -1157,7 +1157,7 @@ const context = {
 
 - 进入与退出
 
-我们需要知道每次转换完成之后，在这个基础上还要做特定的一些操作。目前的实现只能挨个执行没有退出机制，满足不了。所以我们这样设计
+我们需要知道每次转换完成之后，在这个基础上还要做特定的一些操作。目前的实现只能挨个执行没有退出机制，满足不了。所以我们这样设计：
 
 ```js
 export const traverseNode = (ast, context) => {
@@ -1262,7 +1262,7 @@ const Arr = {
 }
 ```
 
-所以最终的函数声明为
+所以最终的函数声明为：
 
 ```js
 const FunctionDeclNode = {
@@ -1732,7 +1732,7 @@ function parseAttributes(context) {
 <div id="foo" v-show="display"/>
 ```
 
-经过解析后的属性为
+经过解析后的属性为：
 
 ```js
 const ast = {
@@ -2207,7 +2207,7 @@ function render() {
 <Comp @change="a + b"></Comp>
 ```
 
-以上模板会被编译为
+以上模板会被编译为：
 
 ```js
 function render(ctx) {
