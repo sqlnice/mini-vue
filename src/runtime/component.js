@@ -8,6 +8,7 @@ import { queueJob } from './scheduler'
 import { LifecycleHooks } from './lifeCycle'
 import { isFunction } from '../utils'
 import { compile } from '../compiler/index'
+import { normalizeVNode } from './vnode'
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
 export let currentInstance
 export const setCurrentInstance = instance => {
@@ -202,8 +203,25 @@ export function mountComponent(vnode, container, anchor, patch, options) {
   created && created.call(renderContext)
   effect(
     () => {
+      // 使用 template 时此时的 instance.render
+      // function(_ctx) {
+      //  with(_ctx) {
+      //    const { h } = MiniVue
+      //    return h('div', null, [h('p', null, counter.value), h('button', { onClick: add }, 'click')])
+      //  }
+      // }
+
+      // 使用 render 选项时此时的 instance.render
+      // render() {
+      //     return {
+      //       type: 'div',
+      //       children: ['我是内容']
+      //     }
+      //   }
       // 获取应该渲染的 vnode
-      const subTree = instance.render.call(renderContext, renderContext)
+      const subTree = normalizeVNode(
+        instance.render.call(renderContext, renderContext)
+      )
       if (!instance.isMounted) {
         // beforeMounte
         beforeMounte && beforeMounte.call(renderContext)

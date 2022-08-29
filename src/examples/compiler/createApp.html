@@ -22,7 +22,12 @@
       `
       createApp({
         template,
-        setup() {
+        data() {
+          return {
+            name: 'sql'
+          }
+        },
+        setup(props, context) {
           const counter = ref(0)
           const add = () => {
             counter.value++

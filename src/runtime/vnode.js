@@ -1,4 +1,4 @@
-import { isNumber, isString } from '../utils'
+import { isNumber, isObject, isString } from '../utils'
 import { isReactive } from '../reactivity/index'
 export const Shape = {
   Text: Symbol('Text'),
@@ -28,7 +28,7 @@ export const ShapeFlags = {
  * @param {Number} flags
  * @returns
  */
-export function h(type, props, children, flags) {
+export function h(type, props = {}, children = [], flags) {
   if (!type) return null
 
   let shapeFlag = 0
@@ -96,4 +96,14 @@ export function createBlock(type, props, children) {
   block.dynamicChildren = currentDynamicChildren
   closeBlock()
   return block
+}
+
+export function normalizeVNode(result) {
+  if (Array.isArray(result)) {
+    return h(Shape.Fragment, null, result)
+  }
+  if (isObject(result)) {
+    return result
+  }
+  return h(Shape.Text, null, result.toString())
 }
