@@ -30,7 +30,9 @@ import {
   Transition,
   createBlock,
   openBlock,
-  createApp
+  createApp,
+  renderList,
+  withModel
 } from './runtime/index.js'
 import { compile } from './compiler/index.js'
 export default {
@@ -63,5 +65,7 @@ export default {
   compile,
   createBlock,
   openBlock,
-  createApp
+  createApp,
+  renderList,
+  withModel
 }

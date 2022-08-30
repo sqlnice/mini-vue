@@ -1,6 +1,7 @@
 import { NodeTypes } from './ast'
 import { capitalize } from '../utils'
 import { ElementTypes } from './ast'
+import { Shape } from '../runtime/vnode'
 /**
  * 转换函数 模板 AST -> JavaScript AST
  * @param {*} ast
@@ -28,7 +29,7 @@ export function transform(ast) {
     // 从后往前的
     nodeTransforms: [
       transformRoot,
-      transformElement,
+      resolveElement,
       transformText,
       transformInterpolation,
       transformComment
@@ -99,6 +100,31 @@ function transformComment(node) {
   }
 }
 
+// 解析标签
+// if 和 for 等标签要单独包裹起来，其他 element 标签正常走解析
+function resolveElement(node) {
+  const forNode = pluck(node.directives, 'for')
+  if (forNode) {
+    const { exp } = forNode
+    const [args, source] = exp.content.split(/\sin\s|\sof\s/)
+    // h(Fragment, null, renderList(this.list, item => h("p")))
+    return () => {
+      const callExp = createCallExpression('h', [
+        {
+          type: Shape.Fragment,
+          value: Shape.Fragment,
+          propStr: null
+        },
+        genJsExpression(
+          `renderList(${source.trim()}, ${args} => ${resolveElement(node)()})`
+        )
+      ])
+      node.jsNode = callExp
+    }
+  }
+  return transformElement(node)
+}
+
 // 转换标签节点
 function transformElement(node) {
   return () => {
@@ -140,12 +166,23 @@ function transformRoot(node) {
   return () => {
     if (node.type !== NodeTypes.ROOT) return
     const vnodeJSAST = node.children[0].jsNode
+    const importExpression = genJsExpression(
+      'const { h, Shape, renderList } = MiniVue'
+    )
     node.jsNode = {
       type: 'FunctionDecl',
       id: createIdentifier('with'),
       params: [createIdentifier('_ctx')],
-      body: [{ type: 'ReturnStatement', return: vnodeJSAST }]
+      body: [importExpression, { type: 'ReturnStatement', return: vnodeJSAST }]
     }
+  }
+}
+
+// 创建表达式字面量
+function genJsExpression(value) {
+  return {
+    type: 'JsExpression',
+    value
   }
 }
 

@@ -489,7 +489,10 @@ function parseAttributes(context) {
       props.push({
         type: NodeTypes.ATTRIBUTE,
         name,
-        value
+        value: value && {
+          type: NodeTypes.TEXT,
+          content: value
+        }
       })
     }
   }

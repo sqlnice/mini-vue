@@ -46,7 +46,7 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       if (key === 'raw') return target
       if (
         isArray(target) &&
-        Object.prototype.hasOwnProperty.call(arrayInstrumentations)(key)
+        Object.prototype.hasOwnProperty.call(arrayInstrumentations, key)
       ) {
         return Reflect.get(arrayInstrumentations, key, receiver)
       }

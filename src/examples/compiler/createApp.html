@@ -11,28 +11,13 @@
   <body>
     <div id="app"></div>
     <script>
-      const { compile, createApp, ref, h } = MiniVue
-      const template = `
-      <div>
-        <p>
-         {{this.counter.value}}
-        </p>
-        <button @click="this.add">click</button>
-      </div>
-      `
+      const { compile, createApp, ref, h, reactive } = MiniVue
+      const template = `<p>111</p>`
       createApp({
         template,
-        data() {
-          return {
-            name: 'sql'
-          }
-        },
-        setup(props, context) {
-          const counter = ref(0)
-          const add = () => {
-            counter.value++
-          }
-          return { counter, add }
+        setup() {
+          const age = ref(1)
+          return { age }
         }
       }).mount('#app')
     </script>

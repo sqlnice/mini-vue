@@ -205,20 +205,21 @@ export function mountComponent(vnode, container, anchor, patch, options) {
     () => {
       // 使用 template 时此时的 instance.render
       // function(_ctx) {
-      //  with(_ctx) {
-      //    const { h } = MiniVue
-      //    return h('div', null, [h('p', null, counter.value), h('button', { onClick: add }, 'click')])
-      //  }
+      //   with(_ctx) {
+      //     const { h } = MiniVue
+      //     return h('div', null, [h('p', null, counter.value), h('button', { onClick: add }, 'click')])
+      //   }
       // }
 
       // 使用 render 选项时此时的 instance.render
       // render() {
-      //     return {
-      //       type: 'div',
-      //       children: ['我是内容']
-      //     }
+      //   return {
+      //     type: 'div',
+      //     children: ['我是内容']
       //   }
+      // }
       // 获取应该渲染的 vnode
+
       const subTree = normalizeVNode(
         instance.render.call(renderContext, renderContext)
       )
@@ -260,6 +261,7 @@ export function mountComponent(vnode, container, anchor, patch, options) {
       scheduler: queueJob
     }
   )
+  console.log(instance)
 }
 
 /**
