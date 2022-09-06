@@ -1,4 +1,11 @@
-import { reactive, isReactive } from '../reactive'
+import { effect } from '../effect'
+import {
+  reactive,
+  isReactive,
+  shallowReactive,
+  readonly,
+  shallowReadonly
+} from '../reactive'
 describe('reactive', () => {
   test('isReactive', () => {
     const original = { count: 0 }
@@ -22,5 +29,39 @@ describe('reactive', () => {
     const observed = reactive(original)
     const observed2 = reactive(original)
     expect(observed).toBe(observed2)
+  })
+  test('shallowReactive', () => {
+    const original = { obj: { count: 0 } }
+    const shallowObserved = shallowReactive(original)
+    const spy = jest.fn(() => console.log(shallowObserved.obj.count))
+    effect(spy)
+    expect(spy).toHaveBeenCalledTimes(1)
+    shallowObserved.obj.count = 1
+    expect(spy).toHaveBeenCalledTimes(1)
+    shallowObserved.obj = {}
+    expect(spy).toHaveBeenCalledTimes(2)
+  })
+  test('readonly', () => {
+    const original = { count: 0 }
+    const readonlyObserved = readonly(original)
+    const spy = jest.fn(() => console.log(readonlyObserved.count))
+    effect(spy)
+    expect(spy).toHaveBeenCalledTimes(1)
+    readonlyObserved.count++
+    expect(spy).toHaveBeenCalledTimes(1)
+    delete readonlyObserved.count
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+  test('shallowReadonly', () => {
+    const original = { obj: { count: 0 }, age: 18 }
+    const shallowReadonlyObserved = shallowReadonly(original)
+    const spy = jest.fn(() => console.log(shallowReadonlyObserved.obj.count))
+    effect(spy)
+    expect(spy).toHaveBeenCalledTimes(1)
+    shallowReadonlyObserved.obj.count++
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(shallowReadonlyObserved.obj.count).toBe(1)
+    shallowReadonlyObserved.age++
+    expect(shallowReadonlyObserved.age).toBe(18)
   })
 })
