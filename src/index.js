@@ -7,6 +7,7 @@ import {
   ref,
   toRef,
   toRefs,
+  isRef,
   proxyRefs,
   computed,
   watch
@@ -44,6 +45,7 @@ export default {
   ref,
   toRef,
   toRefs,
+  isRef,
   proxyRefs,
   computed,
   queueJob,
