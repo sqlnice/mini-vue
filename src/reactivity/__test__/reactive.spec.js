@@ -16,7 +16,7 @@ describe('reactive', () => {
   test('子对象也会被代理', () => {
     const original = { obj: { count: 0 } }
     const observed = reactive(original)
-    expect(observed.obj.__isReactive).toBe(true)
+    expect(isReactive(observed.obj)).toBe(true)
   })
   test('不会被代理两次', () => {
     const original = { count: 0 }

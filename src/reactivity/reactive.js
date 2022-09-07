@@ -2,6 +2,11 @@ import { isObject, hasChanged, isArray } from '../utils'
 import { track, trigger } from './effect'
 import { TriggerOpTypes } from './operations'
 
+const ReactiveFlags = {
+  IS_REACTIVE: '__v_isReactive',
+  IS_RAW: '__v_raw'
+}
+
 const proxyMap = new WeakMap()
 // 用于拦截 for...in 操作时，关联副作用函数
 export const ITERATE_KEY = Symbol('ITERATE_KEY')
@@ -13,9 +18,9 @@ const arrayInstrumentations = {}
   arrayInstrumentations[method] = function (...args) {
     // 这里 this 指代理对象，先在代理对象中查找
     let res = originMethod.apply(this, args)
-    if (res === false) {
-      // 再次通过 this.raw 拿到原始数组查找
-      res = originMethod.apply(this.raw, args)
+    if (res === -1 || res === false) {
+      // 再次通过 toRaw(this) 拿到原始数组查找
+      res = originMethod.apply(toRaw(this), args)
     }
     return res
   }
@@ -42,8 +47,8 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
   if (proxyMap.has(obj)) return proxyMap.get(obj)
   const proxy = new Proxy(obj, {
     get(target, key, receiver) {
-      if (key === '__isReactive') return true
-      if (key === 'raw') return target
+      if (key === ReactiveFlags.IS_REACTIVE) return true
+      if (key === ReactiveFlags.IS_RAW) return target
       if (
         isArray(target) &&
         Object.prototype.hasOwnProperty.call(arrayInstrumentations, key)
@@ -85,7 +90,7 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       const oldValue = target[key]
       const res = Reflect.set(target, key, newValue, receiver)
       // 说明 receiver 就是 target 的代理对象
-      if (target === receiver.raw) {
+      if (target === toRaw(receiver)) {
         if (hasChanged(oldValue, newValue)) {
           // 触发更新
           trigger(target, key, type, newValue)
@@ -144,5 +149,10 @@ export function shallowReadonly(obj) {
 }
 
 export function isReactive(target) {
-  return !!(target && target.__isReactive)
+  return !!(target && target[ReactiveFlags.IS_REACTIVE])
+}
+
+export function toRaw(observed) {
+  const raw = observed && observed[ReactiveFlags.IS_RAW]
+  return raw ? toRaw(raw) : observed
 }

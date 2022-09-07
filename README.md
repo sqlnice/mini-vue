@@ -74,7 +74,7 @@
 
 ✅ **嵌套 `reactive(reactive(obj))`**
 
-在 `get` 拦截器增加 `__isReactive`
+在 `get` 拦截器增加 `__v_isReactive`
 
 ✅ **代理多次 `let a = reactive(obj), b = reactive(obj)`**
 
