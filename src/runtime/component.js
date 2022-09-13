@@ -227,6 +227,8 @@ export function mountComponent(vnode, container, anchor, patch, options) {
         // beforeMounte
         beforeMounte && beforeMounte.call(renderContext)
 
+        // 更新 attrs
+        fallThrough(instance, subTree)
         // 初次挂载
         patch(null, subTree, container, anchor)
         instance.isMounted = true
@@ -246,6 +248,8 @@ export function mountComponent(vnode, container, anchor, patch, options) {
           instance[LifecycleHooks.BEFORE_UPDATE].forEach(hook =>
             hook.call(renderContext)
           )
+        // 更新 attrs
+        fallThrough(instance, subTree)
         patch(instance.subTree, subTree, container, anchor)
 
         // updated
@@ -261,7 +265,6 @@ export function mountComponent(vnode, container, anchor, patch, options) {
       scheduler: queueJob
     }
   )
-  console.log(instance)
 }
 
 /**
@@ -305,7 +308,7 @@ function resolveProps(options, propsData) {
   const attrs = {}
   // 遍历为组件传递的 props 数据
   for (const key in propsData) {
-    if (key in options || key.startsWith('on')) {
+    if (options?.includes(key) || key in options || key.startsWith('on')) {
       // 如果在组件自身有定义 或者 以 on 开头的事件，则为合法
       props[key] = propsData[key]
     } else {
@@ -313,6 +316,20 @@ function resolveProps(options, propsData) {
     }
   }
   return [props, attrs]
+}
+
+/**
+ * 更新组件上的 attrs
+ * @param {*} instance
+ * @param {*} subTree
+ */
+function fallThrough(instance, subTree) {
+  if (Object.keys(instance.attrs).length) {
+    subTree.props = {
+      ...subTree.props,
+      ...instance.attrs
+    }
+  }
 }
 
 /**
