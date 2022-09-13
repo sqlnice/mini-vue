@@ -1,4 +1,4 @@
-import { isObject, hasChanged, isArray } from '../utils'
+import { isObject, hasChanged, isArray, isIntegerKey, hasOwn } from '../utils'
 import { track, trigger } from './effect'
 import { TriggerOpTypes } from './operations'
 
@@ -80,20 +80,19 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
         console.warn(`属性 ${key} 是只读的`)
         return true
       }
-      const type = isArray(target)
-        ? Number(key) < target.length
-          ? TriggerOpTypes.SET
-          : TriggerOpTypes.ADD
-        : Object.prototype.hasOwnProperty.call(target, key)
-        ? TriggerOpTypes.SET
-        : TriggerOpTypes.ADD
       const oldValue = target[key]
+      const hadKey =
+        isArray(target) && isIntegerKey(key)
+          ? Number(key) < target.length
+          : hasOwn(target, key)
       const res = Reflect.set(target, key, newValue, receiver)
       // 说明 receiver 就是 target 的代理对象
       if (target === toRaw(receiver)) {
-        if (hasChanged(oldValue, newValue)) {
+        if (!hadKey) {
+          trigger(target, key, TriggerOpTypes.ADD, newValue)
+        } else if (hasChanged(oldValue, newValue)) {
           // 触发更新
-          trigger(target, key, type, newValue)
+          trigger(target, key, TriggerOpTypes.SET, newValue)
         }
       }
       return res

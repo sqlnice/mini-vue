@@ -1,6 +1,6 @@
 import { TriggerOpTypes } from './operations'
 import { ITERATE_KEY, shouldTrack } from './reactive'
-import { isArray } from '../utils'
+import { isArray, isIntegerKey } from '../utils'
 
 let activeEffect
 const effectStack = []
@@ -92,14 +92,20 @@ export function trigger(target, key, type, newValue) {
       })
   }
   // 当给数组通过索引设置值时，触发相关依赖
-  if (TriggerOpTypes.ADD && isArray(target)) {
-    const lengthEffects = depsMap.get('length')
-    lengthEffects &&
-      lengthEffects.forEach(effectFn => {
-        if (effectFn !== activeEffect) {
-          effectsToRun.add(effectFn)
-        }
-      })
+  if (TriggerOpTypes.ADD === type && isArray(target)) {
+    // 只有为整数时才可以，以下都不行
+    // observed.x = 'x'
+    // observed[-1] = 'x'
+    // observed[NaN] = 'x'
+    if (isIntegerKey(key)) {
+      const lengthEffects = depsMap.get('length')
+      lengthEffects &&
+        lengthEffects.forEach(effectFn => {
+          if (effectFn !== activeEffect) {
+            effectsToRun.add(effectFn)
+          }
+        })
+    }
   }
 
   // 直接修改数组的长度

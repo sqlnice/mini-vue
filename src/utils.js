@@ -1,3 +1,8 @@
+const hasOwnProperty = Object.prototype.hasOwnProperty
+export function hasOwn(val, key) {
+  return hasOwnProperty.call(val, key)
+}
+
 export function isObject(target) {
   return typeof target === 'object' && target !== null
 }
@@ -16,6 +21,15 @@ export function isFunction(target) {
 
 export function isNumber(target) {
   return typeof target === 'number'
+}
+
+export function isIntegerKey(key) {
+  return (
+    isString(key) &&
+    key !== 'NaN' &&
+    key[0] !== '-' &&
+    '' + parseInt(key, 10) === key
+  )
 }
 
 export function hasChanged(oldValue, newValue) {
