@@ -10,7 +10,7 @@
 
   <body>
     <script>
-      const { reactive, effect, ref, computed } = MiniVue
+      const { reactive, effect, ref, computed, toRaw } = MiniVue
       // 根据索引设置值，引发长度副作用函数执行
       // const observed = reactive(['foo'])
       // effect(() => {
@@ -43,13 +43,58 @@
       // console.log(observed.includes(obj))
 
       // 隐式修改数组长度的原型方法
-      const observed = reactive([])
-      effect(() => {
-        observed.push(1)
-      })
-      effect(() => {
-        observed.push(1)
-      })
+      // const observed = reactive([])
+      // effect(() => {
+      //   observed.push(1)
+      // })
+      // effect(() => {
+      //   observed.push(1)
+      // })
+
+      // 数组元素能够正常响应
+      // const observed = reactive([])
+      // let dummy, length
+      // effect(() => {
+      //   dummy = observed[3]
+      //   length = observed.length
+      // })
+      // console.log(dummy, length)
+      // observed[3] = 3
+      // console.log(dummy, length)
+
+      // push
+      // const observed = reactive([])
+      // let dummy, length
+      // effect(() => {
+      //   dummy = observed[3]
+      //   length = observed.length
+      // })
+      // observed.push(1)
+      // console.log(dummy, length)
+
+      // delete on Array不会触发长度依赖
+      // const arr = reactive([1, 2, 3])
+      // effect(() => {
+      //   console.log(arr.length)
+      // })
+      // delete arr[1]
+      // console.log(arr)
+
+      // add non-integer prop on Array should not trigger length dependency
+      // const array = new Array(3)
+      // const observed = reactive(array)
+      // effect(() => {
+      //   console.log(observed.length)
+      // })
+      // observed.x = 'x'
+      // observed[-1] = 'x'
+      // observed[NaN] = 'x'
+
+      let original = reactive([1, ref(2)])
+      const val = original[1]
+      console.log(val, toRaw(original)[1])
+      console.log(val === toRaw(original)[1])
+      console.log(original.indexOf(val) === 1)
     </script>
   </body>
 </html>

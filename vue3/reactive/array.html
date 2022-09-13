@@ -10,15 +10,20 @@
 
   <body>
     <script>
-      const { reactive, watchEffect: effect, ref, computed } = Vue
+      const { reactive, watchEffect: effect, ref, computed, toRaw } = Vue
 
-      const observed = (window.observed = reactive([1, 2, 3]))
-      effect(() => {
-        console.log('index 4 is:', observed[4])
-      })
-      effect(() => {
-        console.log('length is:', observed.length)
-      })
+      // const arr = reactive([1, 2, 3])
+      // effect(() => {
+      //   console.log(arr.length)
+      // })
+      // delete arr[1]
+      // console.log(arr);
+
+      let original = reactive([1, ref(2)])
+      const val = original[1]
+      console.log(val, toRaw(original)[1])
+      console.log(val === toRaw(original)[1])
+      console.log(original.indexOf(val) === 1)
     </script>
   </body>
 </html>
