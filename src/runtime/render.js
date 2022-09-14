@@ -26,7 +26,7 @@ const browserOptions = {
   // class: ['foo', { bar: true }]
   normalizeClass(classPropsValue) {
     let res = ''
-    if (typeof classPropsValue === 'string') return `${classPropsValue} `
+    if (typeof classPropsValue === 'string') return `${classPropsValue}`
     if (isArray(classPropsValue)) {
       classPropsValue.forEach(classProp => {
         res += browserOptions.normalizeClass(classProp)
