@@ -218,8 +218,8 @@ export function mountComponent(vnode, container, anchor, patch, options) {
       //     children: ['我是内容']
       //   }
       // }
-      // 获取应该渲染的 vnode
 
+      // 获取应该渲染的 vnode
       const subTree = normalizeVNode(
         instance.render.call(renderContext, renderContext)
       )
@@ -303,7 +303,7 @@ export function patchComponent(n1, n2) {
  * @param {*} options 组件自身
  * @param {*} propsData 父组件传进来的
  */
-function resolveProps(options, propsData) {
+function resolveProps(options = [], propsData) {
   const props = {}
   const attrs = {}
   // 遍历为组件传递的 props 数据
