@@ -1,6 +1,6 @@
 export { createRenderer } from './render'
 export { h, Shape, createBlock, openBlock } from './vnode'
-export { queueJob } from './scheduler'
+export { queueJob, nextTick } from './scheduler'
 export {
   onBeforeMount,
   onMounted,
