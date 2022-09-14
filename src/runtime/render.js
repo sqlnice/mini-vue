@@ -325,9 +325,17 @@ export function createRenderer(options = browserOptions) {
 
         // 双端 Diff 算法 ⬇️
         // patchKeyedChildrenByTwoPointers(n1, n2, container)
-
-        // 快速 Diff 算法 ⬇️
-        patchKeyedChildren(n1, n2, container)
+        if (
+          n1.children[0] &&
+          n1.children[0].key !== null &&
+          n2.children[0] &&
+          n2.children[0].key !== null
+        ) {
+          // 快速 Diff 算法 ⬇️
+          patchKeyedChildren(n1, n2, container)
+        } else {
+          patchUnKeyedChildren(n1, n2, container)
+        }
       } else {
         // 旧节点要么是文本要么为空
         // 清空
@@ -474,6 +482,28 @@ export function createRenderer(options = browserOptions) {
           }
         }
       }
+    }
+  }
+
+  function patchUnKeyedChildren(n1, n2, container) {
+    const oldLength = n1.children.length
+    const newLength = n2.children.length
+    // 公共长度
+    const commonLength = Math.min(oldLength, newLength)
+    for (let i = 0; i < commonLength; i++) {
+      // 更新公共长度
+      patch(n1[i], n2[i], container)
+    }
+    if (newLength > oldLength) {
+      // 挂载新的
+      n2.children.slice(commonLength).forEach(c => {
+        patch(null, c, container)
+      })
+    } else if (newLength < oldLength) {
+      // 卸载旧的
+      n1.children.slice(commonLength).forEach(c => {
+        unmount(c)
+      })
     }
   }
 
@@ -657,6 +687,10 @@ export function createRenderer(options = browserOptions) {
   //   }
   // }
 
+  /**
+   * 卸载
+   * @param {*} vnode
+   */
   function unmount(vnode) {
     if (vnode.type === Shape.Fragment) {
       vnode.children.forEach(c => unmount(c))
