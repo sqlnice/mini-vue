@@ -92,6 +92,18 @@ const browserOptions = {
     } else if (key === 'class') {
       // el.className 这种方式性能最优
       el.className = nextValue || ''
+    } else if (key === 'style') {
+      if (!nextValue) el.removeAttribute('style')
+      for (const styleName in nextValue) {
+        el.style[styleName] = nextValue[styleName]
+      }
+      if (prevValue) {
+        for (const styleName in prevValue) {
+          if (nextValue[styleName] === null) {
+            el.style[styleName] = ''
+          }
+        }
+      }
     } else if (shouldSetAsProps(el, key)) {
       const type = typeof el[key]
       if (type === 'boolean' && nextValue === '') {
@@ -271,6 +283,8 @@ export function createRenderer(options = browserOptions) {
         patchProps(el, 'class', oldProps.class, newProps.class)
       } else if (n2.patchFlags === 3) {
         // 更新 style
+        console.log('TODO')
+        patchProps(el, 'style')
       }
     } else {
       // 第一步：更新 props
