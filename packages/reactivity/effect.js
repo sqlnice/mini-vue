@@ -1,6 +1,6 @@
 import { TriggerOpTypes } from './operations'
 import { ITERATE_KEY, shouldTrack } from './reactive'
-import { isArray, isIntegerKey } from '../utils'
+import { isArray, isIntegerKey } from '@mini-vue/shared'
 
 let activeEffect
 const effectStack = []

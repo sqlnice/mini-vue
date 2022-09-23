@@ -1,4 +1,4 @@
-import { isObject } from '../../utils'
+import { isObject } from '@mini-vue/shared'
 import { currentInstance } from '../component'
 
 const cache = new Map()

@@ -3,11 +3,11 @@ import {
   reactive,
   shallowReactive,
   shallowReadonly
-} from '../reactivity/index'
+} from '@mini-vue/reactivity'
 import { queueJob } from './scheduler'
 import { LifecycleHooks } from './lifeCycle'
-import { isFunction } from '../utils'
-import { compile } from '../compiler/index'
+import { isFunction } from '@mini-vue/shared'
+import { compile } from '@mini-vue/compiler'
 import { normalizeVNode } from './vnode'
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
 export let currentInstance

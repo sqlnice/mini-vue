@@ -1,5 +1,5 @@
 // 新版解析器
-import { camelize } from '../utils'
+import { camelize } from '@mini-vue/shared'
 import { NodeTypes, ElementTypes } from './ast'
 import { isVoidTag, isNativeTag } from './index'
 

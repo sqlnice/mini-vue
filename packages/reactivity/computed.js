@@ -1,6 +1,5 @@
 import { effect, track, trigger } from './effect'
-import { isFunction } from '../utils'
-
+import { isFunction } from '@mini-vue/shared'
 export function computed(getterOrOption) {
   let getter
   let setter = () => {

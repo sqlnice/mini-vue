@@ -1,4 +1,4 @@
-import { isFunction, isString, camelize, capitalize } from '../utils'
+import { isFunction, isString, camelize, capitalize } from '@mini-vue/shared'
 import { createRenderer } from './render'
 import { h } from './vnode'
 let components

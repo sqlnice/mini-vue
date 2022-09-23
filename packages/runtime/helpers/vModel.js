@@ -1,4 +1,4 @@
-import { isArray } from '../../utils'
+import { isArray } from '@mini-vue/shared'
 
 export function withModel(tag, props = [], getter, setter) {
   if (tag === 'input') {

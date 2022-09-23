@@ -1,6 +1,6 @@
 import { onUnmounted } from './lifeCycle'
 import { Shape } from './vnode'
-import { ref } from '../reactivity/index'
+import { ref } from '@mini-vue/reactivity'
 export const defineAsyncComponent = options => {
   if (typeof options === 'function') {
     options = {

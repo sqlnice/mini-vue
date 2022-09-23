@@ -1,5 +1,5 @@
-import { isNumber, isObject, isString } from '../utils'
-import { isReactive } from '../reactivity/index'
+import { isNumber, isObject, isString } from '@mini-vue/shared'
+import { isReactive } from '@mini-vue/reactivity'
 export const Shape = {
   Text: Symbol('Text'),
   Comment: Symbol('Comment'),

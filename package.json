@@ -2,15 +2,16 @@
   "name": "mini-vue",
   "version": "1.0.0",
   "description": "逐渐实现 Vue.js 大部分功能",
-  "main": "index.js",
+  "main": "lib/mini-vue.cjs.js",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "test": "jest",
+    "newDev": "rollup -c -w",
     "dev": "rollup -c scripts/rollup.config.dev.js --watch",
     "build": "rollup -c scripts/rollup.config.port.js",
-    "lint": "eslint src --ext .js --cache --fix",
+    "lint": "eslint packages --ext .js --cache --fix",
     "prepare": "husky install"
   },
   "repository": {

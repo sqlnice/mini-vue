@@ -1,4 +1,10 @@
-import { isObject, hasChanged, isArray, isIntegerKey, hasOwn } from '../utils'
+import {
+  isObject,
+  hasChanged,
+  isArray,
+  isIntegerKey,
+  hasOwn
+} from '@mini-vue/shared'
 import { track, trigger } from './effect'
 import { TriggerOpTypes } from './operations'
 

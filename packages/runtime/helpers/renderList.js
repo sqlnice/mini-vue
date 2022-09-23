@@ -1,4 +1,4 @@
-import { isNumber, isObject, isString } from '../../utils'
+import { isNumber, isObject, isString } from '@mini-vue/shared'
 export function renderList(source, renderItem) {
   const vnodes = []
   if (isNumber(source)) {

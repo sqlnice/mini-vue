@@ -12,7 +12,7 @@ import {
   proxyRefs,
   computed,
   watch
-} from './reactivity/index.js'
+} from '@mini-vue/reactivity'
 
 import {
   createRenderer,
@@ -36,8 +36,8 @@ import {
   createApp,
   renderList,
   withModel
-} from './runtime/index.js'
-import { compile } from './compiler/index.js'
+} from '@mini-vue/runtime'
+import { compile } from '@mini-vue/compiler'
 export default {
   reactive,
   shallowReactive,

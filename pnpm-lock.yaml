@@ -38,6 +38,40 @@ importers:
       rollup-plugin-livereload: 2.0.5
       rollup-plugin-serve: 2.0.1
 
+  packages/compiler:
+    specifiers:
+      '@mini-vue/shared': workspace:^1.0.0
+    dependencies:
+      '@mini-vue/shared': link:../shared
+
+  packages/reactivity:
+    specifiers:
+      '@mini-vue/shared': workspace:^1.0.0
+    dependencies:
+      '@mini-vue/shared': link:../shared
+
+  packages/runtime:
+    specifiers:
+      '@mini-vue/compiler': workspace:^1.0.0
+      '@mini-vue/reactivity': workspace:^1.0.0
+      '@mini-vue/shared': workspace:^1.0.0
+    dependencies:
+      '@mini-vue/compiler': link:../compiler
+      '@mini-vue/reactivity': link:../reactivity
+      '@mini-vue/shared': link:../shared
+
+  packages/vue:
+    specifiers:
+      '@mini-vue/compiler': workspace:^1.0.0
+      '@mini-vue/reactivity': workspace:^1.0.0
+      '@mini-vue/runtime': workspace:^1.0.0
+      '@mini-vue/shared': workspace:^1.0.0
+    dependencies:
+      '@mini-vue/compiler': link:../compiler
+      '@mini-vue/reactivity': link:../reactivity
+      '@mini-vue/runtime': link:../runtime
+      '@mini-vue/shared': link:../shared
+
 packages:
 
   /@ampproject/remapping/2.2.0:

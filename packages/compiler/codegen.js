@@ -1,6 +1,5 @@
 import { ElementTypes, NodeTypes } from './ast'
-import { capitalize } from '../utils'
-
+import { capitalize } from '@mini-vue/shared'
 export function generate(ast) {
   const returns = traverseNode(ast)
   const code = `

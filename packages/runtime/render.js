@@ -1,4 +1,4 @@
-import { isArray, isObject, isString, isFunction } from '../utils'
+import { isArray, isObject, isString, isFunction } from '@mini-vue/shared'
 import { Shape } from './vnode'
 import { mountComponent, patchComponent } from './component'
 function shouldSetAsProps(el, key) {
