@@ -9,8 +9,7 @@
   "scripts": {
     "test": "jest",
     "newDev": "rollup -c -w",
-    "dev": "rollup -c scripts/rollup.config.dev.js --watch",
-    "build": "rollup -c scripts/rollup.config.port.js",
+    "newBuild": "rollup -c",
     "lint": "eslint packages --ext .js --cache --fix",
     "prepare": "husky install"
   },
