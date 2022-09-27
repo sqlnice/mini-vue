@@ -167,10 +167,9 @@ function parseInterpolation(context) {
     console.error('插值缺少结束定界符')
   }
 
-  // 截取两个定界符直接的内容作为插值表达式
-  const content = context.source.slice(0, closeIndex)
-  // 消费表达式的内容
-  context.advanceBy(content.length)
+  // 截取两个定界符之间的内容作为插值表达式
+  const content = parseTextData(context, closeIndex).trim()
+
   // 消费结束定界符
   context.advanceBy('}}'.length)
 
@@ -198,15 +197,21 @@ function parseText(context) {
     endIndex = delimiterIndex
   }
   // 截取文本内容
-  const content = context.source.slice(0, endIndex)
-  // 消费文本内容
-  context.advanceBy(content.length)
+  const content = parseTextData(context, endIndex)
 
   return {
     type: NodeTypes.TEXT,
     content: decodeHtml(content) // 解码内容
   }
 }
+
+// 无 trim
+function parseTextData(context, length) {
+  const rawText = context.source.slice(0, length)
+  context.advanceBy(rawText.length)
+  return rawText
+}
+
 const namedCharacterReferences = {
   gt: '>',
   'gt;': '>',
@@ -421,41 +426,47 @@ function parseAttributes(context) {
     advanceBy(name.length)
     // 消费空白字符
     advanceSpaces()
-    // 消费等于号
-    advanceBy(1)
+    // 只有 id = 'foo' 时才消费等于号
+    context.source[0] === '=' && advanceBy(1)
     // 消费等于号与属性值直接的空白字符
     advanceSpaces()
 
     // 定义属性值
-    let value = ''
+    let value
 
     const quote = context.source[0]
-    // 属性值是否被引号引用
-    const isQuoted = quote === '"' || quote === "'"
-    if (isQuoted) {
-      // 消费引号
-      advanceBy(1)
-      // 获取下一个引号的索引
-      const endQuoteIndex = context.source.indexOf(quote)
-      if (endQuoteIndex > -1) {
-        // 获取以一个引号之前的内容作为属性值
-        value = context.source.slice(0, endQuoteIndex)
-        // 消费属性值
-        advanceBy(value.length)
+    // 是否标签结尾
+    const isEndFlag = quote === '>'
+    if (!isEndFlag) {
+      // 属性值是否被引号引用
+      const isQuoted = quote === '"' || quote === "'"
+
+      if (isQuoted) {
         // 消费引号
         advanceBy(1)
+        // 获取下一个引号的索引
+        const endQuoteIndex = context.source.indexOf(quote)
+        if (endQuoteIndex > -1) {
+          // 获取以一个引号之前的内容作为属性值
+          value = { content: context.source.slice(0, endQuoteIndex) }
+          // 消费属性值
+          advanceBy(value.content.length)
+          // 消费引号
+          advanceBy(1)
+        } else {
+          console.error('缺少引号')
+        }
       } else {
-        console.error('缺少引号')
+        // 属性值没有被引号引用
+        // 下一个空白字符之前的内容全部作为属性值
+        const match = /^[^\t\r\n\f >]+/.exec(context.source)
+        // 获取属性值
+        value = { content: match[0] }
+        // 消费属性值
+        advanceBy(value.content.length)
       }
-    } else {
-      // 属性值没有被引号引用
-      // 下一个空白字符之前的内容全部作为属性值
-      const match = /^[^\t\r\n\f >]+/.exec(context.source)
-      // 获取属性值
-      value = match[0]
-      // 消费属性值
-      advanceBy(value.length)
     }
+
     advanceSpaces()
 
     if (/^(v-|:|@)/.test(name)) {
@@ -475,7 +486,7 @@ function parseAttributes(context) {
         name: dirName,
         exp: value && {
           type: NodeTypes.SIMPLE_EXPRESSION,
-          content: value,
+          content: value.content,
           isStatic: false
         },
         arg: argContent && {
@@ -491,7 +502,7 @@ function parseAttributes(context) {
         name,
         value: value && {
           type: NodeTypes.TEXT,
-          content: value
+          content: value.content
         }
       })
     }
