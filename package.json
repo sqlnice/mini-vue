@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "newDev": "rollup -c -w",
-    "newBuild": "rollup -c",
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
     "lint": "eslint packages --ext .js --cache --fix",
     "prepare": "husky install"
   },
