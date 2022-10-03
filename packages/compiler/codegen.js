@@ -168,7 +168,6 @@ function createPropArr(node) {
   ]
 }
 
-// 可以不remove吗？不可以
 function pluck(directives, name, remove = true) {
   const index = directives.findIndex(dir => dir.name === name)
   const dir = directives[index]
