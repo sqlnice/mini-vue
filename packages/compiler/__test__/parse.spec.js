@@ -275,5 +275,293 @@ describe('compiler: parse', () => {
         children: []
       })
     })
+
+    test('attribute with empty value, single quote', () => {
+      const ast = parse("<div id=''></div>")
+      const element = ast.children[0]
+
+      expect(element).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: 'div',
+        tagType: ElementTypes.ELEMENT,
+
+        props: [
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'id',
+            value: {
+              type: NodeTypes.TEXT,
+              content: ''
+            }
+          }
+        ],
+        directives: [],
+        isSelfClosing: false,
+        children: []
+      })
+    })
+
+    test('attribute with value, double quote', () => {
+      const ast = parse('<div id=">\'"></div>')
+      const element = ast.children[0]
+      expect(element).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: 'div',
+        tagType: ElementTypes.ELEMENT,
+
+        props: [
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'id',
+            value: {
+              type: NodeTypes.TEXT,
+              content: ">'"
+            }
+          }
+        ],
+        directives: [],
+        isSelfClosing: false,
+        children: []
+      })
+    })
+
+    test('attribute with value, single quote', () => {
+      const ast = parse("<div id='>\"'></div>")
+      const element = ast.children[0]
+
+      expect(element).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: 'div',
+        tagType: ElementTypes.ELEMENT,
+
+        props: [
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'id',
+            value: {
+              type: NodeTypes.TEXT,
+              content: '>"'
+            }
+          }
+        ],
+        directives: [],
+        isSelfClosing: false,
+        children: []
+      })
+    })
+
+    test('multiple attributes', () => {
+      const ast = parse('<div id="a" class="c" inert style=\'\'></div>')
+      const element = ast.children[0]
+      expect(element).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: 'div',
+        tagType: ElementTypes.ELEMENT,
+
+        props: [
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'id',
+            value: {
+              type: NodeTypes.TEXT,
+              content: 'a'
+            }
+          },
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'class',
+            value: {
+              type: NodeTypes.TEXT,
+              content: 'c'
+            }
+          },
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'inert',
+            value: undefined
+          },
+          {
+            type: NodeTypes.ATTRIBUTE,
+            name: 'style',
+            value: {
+              type: NodeTypes.TEXT,
+              content: ''
+            }
+          }
+        ],
+        directives: [],
+        isSelfClosing: false,
+        children: []
+      })
+    })
+
+    test('directive with no value', () => {
+      const ast = parse('<div v-if/>')
+      const directive = ast.children[0].directives[0]
+      expect(directive).toStrictEqual({
+        type: NodeTypes.DIRECTIVE,
+        name: 'if',
+        arg: undefined,
+        exp: undefined
+      })
+    })
+
+    test('directive with value', () => {
+      const ast = parse('<div v-if="a"/>')
+      const directive = ast.children[0].directives[0]
+
+      expect(directive).toStrictEqual({
+        type: NodeTypes.DIRECTIVE,
+        name: 'if',
+        arg: undefined,
+        exp: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'a',
+          isStatic: false
+        }
+      })
+    })
+
+    test('directive with argument', () => {
+      const ast = parse('<div v-on:click/>')
+      const directive = ast.children[0].directives[0]
+
+      expect(directive).toStrictEqual({
+        type: NodeTypes.DIRECTIVE,
+        name: 'on',
+        arg: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'click',
+          isStatic: true
+        },
+        exp: undefined
+      })
+    })
+
+    test('v-bind shorthand', () => {
+      const ast = parse('<div :a="b" />')
+      const directive = ast.children[0].directives[0]
+      expect(directive).toStrictEqual({
+        type: NodeTypes.DIRECTIVE,
+        name: 'bind',
+        arg: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'a',
+          isStatic: true
+        },
+        exp: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'b',
+          isStatic: false
+        }
+      })
+    })
+
+    test('v-on shorthand', () => {
+      const ast = parse('<div @a="b" />')
+      const directive = ast.children[0].directives[0]
+
+      expect(directive).toStrictEqual({
+        type: NodeTypes.DIRECTIVE,
+        name: 'on',
+        arg: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'a',
+          isStatic: true
+        },
+        exp: {
+          type: NodeTypes.SIMPLE_EXPRESSION,
+          content: 'b',
+          isStatic: false
+        }
+      })
+    })
+
+    test('end tags are case-insensitive.', () => {
+      const ast = parse('<div>hello</DIV>after')
+      const element = ast.children[0]
+      const text = element.children[0]
+
+      expect(text).toStrictEqual({
+        type: NodeTypes.TEXT,
+        content: 'hello'
+      })
+    })
+
+    test('self closing single tag', () => {
+      const ast = parse('<div :class="{ some: condition }" />')
+
+      expect(ast.children).toHaveLength(1)
+      expect(ast.children[0]).toMatchObject({ tag: 'div' })
+    })
+
+    test('self closing multiple tag', () => {
+      const ast = parse(
+        `<div :class="{ some: condition }" />\n` +
+          `<p v-bind:style="{ color: 'red' }"/>`
+      )
+
+      expect(ast).toMatchSnapshot()
+
+      expect(ast.children).toHaveLength(2)
+      expect(ast.children[0]).toMatchObject({ tag: 'div' })
+      expect(ast.children[1]).toMatchObject({ tag: 'p' })
+    })
+
+    test('valid html', () => {
+      const ast = parse(
+        `<div :class="{ some: condition }">\n` +
+          `  <p v-bind:style="{ color: 'red' }"/>\n` +
+          `</div>`
+      )
+
+      expect(ast).toMatchSnapshot()
+
+      expect(ast.children).toHaveLength(1)
+      const el = ast.children[0]
+      expect(el).toMatchObject({
+        tag: 'div'
+      })
+      expect(el.children).toHaveLength(1)
+      expect(el.children[0]).toMatchObject({
+        tag: 'p'
+      })
+    })
+  })
+
+  describe('whitespace management when adopting strategy condense', () => {
+    it('should remove whitespaces w/ newline between elements', () => {
+      const ast = parse(`<div/> \n <div/> \n <div/>`)
+      expect(ast.children.length).toBe(3)
+      expect(ast.children[1].type).toBe(NodeTypes.ELEMENT)
+    })
+
+    it('should NOT remove whitespaces w/ newline between interpolations', () => {
+      const ast = parse(`{{ foo }} \n {{ bar }}`)
+      expect(ast.children.length).toBe(3)
+      expect(ast.children[0].type).toBe(NodeTypes.INTERPOLATION)
+      expect(ast.children[1]).toMatchObject({
+        type: NodeTypes.TEXT,
+        content: ' '
+      })
+      expect(ast.children[2].type).toBe(NodeTypes.INTERPOLATION)
+    })
+
+    it('should NOT remove whitespaces w/o newline between elements', () => {
+      const ast = parse(`<div/> <div/> <div/>`)
+      expect(ast.children.length).toBe(5)
+      expect(ast.children.map(c => c.type)).toMatchObject([
+        NodeTypes.ELEMENT,
+        NodeTypes.TEXT,
+        NodeTypes.ELEMENT,
+        NodeTypes.TEXT,
+        NodeTypes.ELEMENT
+      ])
+    })
+
+    it('should condense consecutive whitespaces in text', () => {
+      const ast = parse(`   foo  \n    bar     baz     `)
+      expect(ast.children[0].content).toBe(` foo bar baz `)
+    })
   })
 })

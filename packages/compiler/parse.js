@@ -151,6 +151,11 @@ function parseElement(context, ancestors) {
   // 理论来说消费完子标签后最后应该最剩下的应该是 </div>
   if (context.source.startsWith(`</${element.tag}`)) {
     parseTag(context, 'end')
+  } else if (
+    // 也有可能是这种 <div> </DIV>
+    context.source.toLocaleLowerCase().startsWith(`</${element.tag}`)
+  ) {
+    parseTag(context, 'end')
   } else {
     console.error(`${element.tag} 标签缺少闭合标签`)
   }
@@ -426,48 +431,17 @@ function parseAttributes(context) {
     advanceBy(name.length)
     // 消费空白字符
     advanceSpaces()
-    // 只有 id = 'foo' 时才消费等于号
-    context.source[0] === '=' && advanceBy(1)
-    // 消费等于号与属性值直接的空白字符
-    advanceSpaces()
 
     // 定义属性值
     let value
-
-    const quote = context.source[0]
-    // 是否标签结尾
-    const isEndFlag = quote === '>'
-    if (!isEndFlag) {
-      // 属性值是否被引号引用
-      const isQuoted = quote === '"' || quote === "'"
-
-      if (isQuoted) {
-        // 消费引号
-        advanceBy(1)
-        // 获取下一个引号的索引
-        const endQuoteIndex = context.source.indexOf(quote)
-        if (endQuoteIndex > -1) {
-          // 获取以一个引号之前的内容作为属性值
-          value = { content: context.source.slice(0, endQuoteIndex) }
-          // 消费属性值
-          advanceBy(value.content.length)
-          // 消费引号
-          advanceBy(1)
-        } else {
-          console.error('缺少引号')
-        }
-      } else {
-        // 属性值没有被引号引用
-        // 下一个空白字符之前的内容全部作为属性值
-        const match = /^[^\t\r\n\f >]+/.exec(context.source)
-        // 获取属性值
-        value = { content: match[0] }
-        // 消费属性值
-        advanceBy(value.content.length)
-      }
+    if (context.source[0] === '=') {
+      // 只有 id = 'foo' 时才消费等于号
+      advanceBy(1)
+      // 消费等于号与属性值直接的空白字符
+      advanceSpaces()
+      value = parseAttributeValue(context)
+      advanceSpaces()
     }
-
-    advanceSpaces()
 
     if (/^(v-|:|@)/.test(name)) {
       // Directive
@@ -510,6 +484,43 @@ function parseAttributes(context) {
 
   return [props, directives]
 }
+function parseAttributeValue(context) {
+  const { advanceBy } = context
+  const quote = context.source[0]
+  let content
+  // 是否标签结尾
+  const isEndFlag = quote === '>'
+  if (!isEndFlag) {
+    // 属性值是否被引号引用
+    const isQuoted = quote === '"' || quote === "'"
+
+    if (isQuoted) {
+      // 消费引号
+      advanceBy(1)
+      // 获取下一个引号的索引
+      const endQuoteIndex = context.source.indexOf(quote)
+      if (endQuoteIndex > -1) {
+        // 获取以一个引号之前的内容作为属性值
+        content = context.source.slice(0, endQuoteIndex)
+        // 消费属性值
+        advanceBy(content.length)
+        // 消费引号
+        advanceBy(1)
+      } else {
+        console.error('缺少引号')
+      }
+    } else {
+      // 属性值没有被引号引用
+      // 下一个空白字符之前的内容全部作为属性值
+      const match = /^[^\t\r\n\f >]+/.exec(context.source)
+      // 获取属性值
+      content = match[0]
+      // 消费属性值
+      advanceBy(content.content.length)
+    }
+  }
+  return { content }
+}
 
 function isEnd(context, ancestors) {
   // 解析完毕直接返回
@@ -518,6 +529,10 @@ function isEnd(context, ancestors) {
   for (let i = ancestors.length - 1; i >= 0; --i) {
     // 只要栈中存在于当前结束标签同名的节点，就停止
     if (context.source.startsWith(`</${ancestors[i].tag}`)) {
+      return true
+    } else if (
+      context.source.toLocaleLowerCase().startsWith(`</${ancestors[i].tag}`)
+    ) {
       return true
     }
   }

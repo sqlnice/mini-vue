@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`compiler: parse Element self closing multiple tag 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "directives": [
+        {
+          "arg": {
+            "content": "class",
+            "isStatic": true,
+            "type": "SimpleExpression",
+          },
+          "exp": {
+            "content": "{ some: condition }",
+            "isStatic": false,
+            "type": "SimpleExpression",
+          },
+          "name": "bind",
+          "type": "Directive",
+        },
+      ],
+      "isSelfClosing": true,
+      "props": [],
+      "tag": "div",
+      "tagType": "Element",
+      "type": "Element",
+    },
+    {
+      "children": [],
+      "directives": [
+        {
+          "arg": {
+            "content": "style",
+            "isStatic": true,
+            "type": "SimpleExpression",
+          },
+          "exp": {
+            "content": "{ color: 'red' }",
+            "isStatic": false,
+            "type": "SimpleExpression",
+          },
+          "name": "bind",
+          "type": "Directive",
+        },
+      ],
+      "isSelfClosing": true,
+      "props": [],
+      "tag": "p",
+      "tagType": "Element",
+      "type": "Element",
+    },
+  ],
+  "type": "Root",
+}
+`;
+
+exports[`compiler: parse Element valid html 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "directives": [
+            {
+              "arg": {
+                "content": "style",
+                "isStatic": true,
+                "type": "SimpleExpression",
+              },
+              "exp": {
+                "content": "{ color: 'red' }",
+                "isStatic": false,
+                "type": "SimpleExpression",
+              },
+              "name": "bind",
+              "type": "Directive",
+            },
+          ],
+          "isSelfClosing": true,
+          "props": [],
+          "tag": "p",
+          "tagType": "Element",
+          "type": "Element",
+        },
+      ],
+      "directives": [
+        {
+          "arg": {
+            "content": "class",
+            "isStatic": true,
+            "type": "SimpleExpression",
+          },
+          "exp": {
+            "content": "{ some: condition }",
+            "isStatic": false,
+            "type": "SimpleExpression",
+          },
+          "name": "bind",
+          "type": "Directive",
+        },
+      ],
+      "isSelfClosing": false,
+      "props": [],
+      "tag": "div",
+      "tagType": "Element",
+      "type": "Element",
+    },
+  ],
+  "type": "Root",
+}
+`;
