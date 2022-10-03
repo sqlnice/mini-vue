@@ -2,6 +2,7 @@
   "name": "@mini-vue/compiler",
   "version": "1.0.0",
   "description": "@mini-vue/compiler",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
