@@ -77,7 +77,7 @@ export function mountComponent(vnode, container, anchor, patch, options) {
     mounted,
     beforeUpdate,
     updated,
-    props: propsOption,
+    props: propsOption = [],
     setup
   } = componentOptions
 
@@ -308,7 +308,7 @@ function resolveProps(options = [], propsData) {
   const attrs = {}
   // 遍历为组件传递的 props 数据
   for (const key in propsData) {
-    if (options?.includes(key) || key in options || key.startsWith('on')) {
+    if (key in options || key.startsWith('on') || options.includes(key)) {
       // 如果在组件自身有定义 或者 以 on 开头的事件，则为合法
       props[key] = propsData[key]
     } else {
