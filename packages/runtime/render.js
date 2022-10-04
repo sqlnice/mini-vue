@@ -294,8 +294,8 @@ export function createRenderer(options = browserOptions) {
    */
   function patchElement(n1, n2, anchor) {
     const el = (n2.el = n1.el)
-    const oldProps = n1.props
-    const newProps = n2.props
+    const oldProps = n1.props || {}
+    const newProps = n2.props || {}
 
     // TODO 为啥没有 patchFlags
     if (n2.patchFlags) {
@@ -452,7 +452,7 @@ export function createRenderer(options = browserOptions) {
       const newStart = j
       // 索引表
       const keyIndex = {}
-      for (let i = newStart; i < newEnd; i++) {
+      for (let i = newStart; i <= newEnd; i++) {
         keyIndex[newChildren[i].key] = i
       }
       // 已经更新过的节点
@@ -467,7 +467,7 @@ export function createRenderer(options = browserOptions) {
           if (typeof k !== 'undefined') {
             const newVNode = newChildren[k]
             // 找到可复用 DOM ，更新
-            patch(oldVNode, newVNode, container)
+            patch(oldVNode, newVNode, container, anchor)
             // 每更新一个节点，自增
             patched++
             // 填充 source
@@ -488,27 +488,27 @@ export function createRenderer(options = browserOptions) {
           unmount(oldVNode)
         }
       }
-      // 需要移动
-      if (moved) {
-        // seq 里面是递增的，所以符合索引的都不需要移动
-        // 返回索引
-        const seq = getSequence(source)
-        // 最长递增子序列的最后一个元素
-        let s = seq.length - 1
-        // 新的一组子节点的最后一个元素（索引）
-        let i = count - 1
-        // 从后往前循环 source
-        for (i; i >= 0; i--) {
-          // 该节点在新 children 中真实的索引
-          const pos = i + newStart
-          const newVNode = newChildren[pos]
-          const nextPos = pos + 1
-          const anchor =
-            nextPos < newChildren.length ? newChildren[nextPos].el : null
-          if (source[i] === -1) {
-            // 新元素，挂载
-            patch(null, newVNode, container, anchor)
-          } else if (i !== seq[s]) {
+
+      // seq 里面是递增的，所以符合索引的都不需要移动
+      // 返回索引
+      const seq = getSequence(source)
+      // 最长递增子序列的最后一个元素
+      let s = seq.length - 1
+      // 新的一组子节点的最后一个元素（索引）
+      let i = count - 1
+      // 从后往前循环 source(因为涉及到插入 insert 是 insertBefore)
+      for (i; i >= 0; i--) {
+        // 该节点在新 children 中真实的索引
+        const pos = i + newStart
+        const newVNode = newChildren[pos]
+        const nextPos = pos + 1
+        const anchor =
+          nextPos < newChildren.length ? newChildren[nextPos].el : null
+        if (source[i] === -1) {
+          // 新元素，挂载
+          patch(null, newVNode, container, anchor)
+        } else if (moved) {
+          if (i !== seq[s]) {
             // 索引不相同，代表不在递增子序列里面，需要移动
             insert(newVNode.el, container, anchor)
           } else {
