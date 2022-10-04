@@ -115,10 +115,12 @@ const browserOptions = {
         el[key] = nextValue
       }
     } else {
-      if (nextValue === null || nextValue === undefined) {
-        el.removeAttribute(key)
-      } else {
-        el.setAttribute(key, nextValue)
+      if (key !== 'key') {
+        if (nextValue === null || nextValue === undefined) {
+          el.removeAttribute(key)
+        } else {
+          el.setAttribute(key, nextValue)
+        }
       }
     }
   }
@@ -208,7 +210,7 @@ export function createRenderer(options = browserOptions) {
       if (!n1) {
         // 没有旧节点，挂载
         const el = (n2.el = createText(n2.children))
-        insert(el, container)
+        insert(el, container, anchor)
       } else {
         // 新旧都有，替换
         const el = (n2.el = n1.el)
@@ -220,7 +222,7 @@ export function createRenderer(options = browserOptions) {
       // 注释节点
       if (!n1) {
         const el = (n2.el = createComment(n2.children))
-        insert(el, container)
+        insert(el, container, anchor)
       } else {
         const el = (n2.el = n1.el)
         if (n2.children !== n1.children) {
@@ -229,12 +231,22 @@ export function createRenderer(options = browserOptions) {
       }
     } else if (type === Shape.Fragment) {
       // Fragment 节点
+
+      const fragmentStartAnchor = (n2.el = n1
+        ? n1.el
+        : document.createTextNode(''))
+
+      const fragmentEndAnchor = (n2.anchor = n1
+        ? n1.anchor
+        : document.createTextNode(''))
+      insert(fragmentStartAnchor, container, anchor)
+      insert(fragmentEndAnchor, container, anchor)
       if (!n1) {
-        // 无旧节点，直接挂载F
-        n2.children.forEach(c => patch(null, c, container))
+        // 无旧节点，直接挂载
+        n2.children.forEach(c => patch(null, c, container, fragmentEndAnchor))
       } else {
         // 新旧都有，更新
-        patchChildren(n1, n2, container)
+        patchChildren(n1, n2, container, fragmentEndAnchor)
       }
     } else {
       // TODO 更新其他类型的 vnode
@@ -391,7 +403,7 @@ export function createRenderer(options = browserOptions) {
     let oldVNode = oldChildren[j]
     let newVNode = newChildren[j]
     // 1.从前往后 处理前置元素
-    while (oldVNode.key === newVNode.key) {
+    while (oldVNode?.key === newVNode?.key) {
       patch(oldVNode, newVNode, container, anchor)
       j++
       oldVNode = oldChildren[j]
@@ -403,7 +415,7 @@ export function createRenderer(options = browserOptions) {
     let newEnd = newChildren.length - 1
     oldVNode = oldChildren[oldEnd]
     newVNode = newChildren[newEnd]
-    while (oldVNode.key === newVNode.key) {
+    while (oldVNode?.key === newVNode?.key) {
       patch(oldVNode, newVNode, container, anchor)
       oldEnd--
       newEnd--
@@ -718,7 +730,15 @@ export function createRenderer(options = browserOptions) {
    */
   function unmount(vnode) {
     if (vnode.type === Shape.Fragment) {
-      vnode.children.forEach(c => unmount(c))
+      let { el: cur, anchor: end } = vnode
+      while (cur !== end) {
+        const next = cur.nextSibling
+        cur.parentNode.removeChild(cur)
+        cur = next
+      }
+      end.parentNode.removeChild(end)
+      // 老方法
+      // vnode.children.forEach(c => unmount(c))
     } else if (isObject(vnode.type)) {
       if (vnode.shouldKeepAlive) {
         // 如果组件已经被 KeepAlive，则调用失活方法，给他移走

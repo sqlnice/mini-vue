@@ -1,6 +1,5 @@
 import { createRenderer } from '../render'
 import { h, Shape } from '../vnode'
-import { nextTick } from '../scheduler'
 const { render } = createRenderer()
 
 function getTag(el) {
@@ -103,7 +102,7 @@ describe('patch props', () => {
     expect(el.getAttribute('bar')).toBeFalsy()
   })
 
-  test('patch event', async () => {
+  test('patch event', () => {
     let el,
       dummy = 0
     render(h('div', { onClick: () => dummy++ }), root)
@@ -125,7 +124,6 @@ describe('patch props', () => {
     render(h('div', { onMousedown: () => (dummy += 10) }), root)
     el = root.children[0]
     el.click()
-    await nextTick()
     expect(dummy).toBe(2)
     triggerMousedown()
     expect(dummy).toBe(12)
