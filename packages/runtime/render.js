@@ -86,8 +86,8 @@ const browserOptions = {
           invoker.value = nextValue
         }
       } else {
-        // 移除事件
-        el.removeEventListener(name, prevValue)
+        // 移除事件(要和注册事件时传入的 listener 相同)
+        el.removeEventListener(name, invoker)
       }
     } else if (key === 'class') {
       // el.className 这种方式性能最优
@@ -99,7 +99,7 @@ const browserOptions = {
       }
       if (prevValue) {
         for (const styleName in prevValue) {
-          if (nextValue[styleName] === null) {
+          if (nextValue && nextValue[styleName] === undefined) {
             el.style[styleName] = ''
           }
         }
@@ -107,12 +107,19 @@ const browserOptions = {
     } else if (shouldSetAsProps(el, key)) {
       const type = typeof el[key]
       if (type === 'boolean' && nextValue === '') {
-        el[key] = true
+        nextValue = true
+      }
+      if (nextValue === null || nextValue === undefined) {
+        el.removeAttribute(key)
       } else {
         el[key] = nextValue
       }
     } else {
-      el.setAttribute(key, nextValue)
+      if (nextValue === null || nextValue === undefined) {
+        el.removeAttribute(key)
+      } else {
+        el.setAttribute(key, nextValue)
+      }
     }
   }
 }
@@ -148,6 +155,8 @@ export function createRenderer(options = browserOptions) {
   function patch(n1, n2, container, anchor) {
     // 新旧节点类型不同 则直接卸载旧节点
     if (n1 && n1.type !== n2.type) {
+      // n1被卸载后，n2将会创建，因此anchor至关重要。需要将它设置为n1的下一个兄弟节点
+      anchor = (n1.anchor || n1.el).nextSibling
       unmount(n1)
       n1 = null
     }
@@ -160,7 +169,7 @@ export function createRenderer(options = browserOptions) {
         mountElement(n2, container, anchor)
       } else {
         // 更新节点
-        patchElement(n1, n2)
+        patchElement(n1, n2, anchor)
       }
     } else if (isObject(type) && type.__isTeleport) {
       // Teleport 组件，将渲染逻辑交给 Teleport
@@ -271,11 +280,12 @@ export function createRenderer(options = browserOptions) {
    * @param {*} n1
    * @param {*} n2
    */
-  function patchElement(n1, n2) {
+  function patchElement(n1, n2, anchor) {
     const el = (n2.el = n1.el)
     const oldProps = n1.props
     const newProps = n2.props
 
+    // TODO 为啥没有 patchFlags
     if (n2.patchFlags) {
       // 靶向更新
       if (n2.patchFlags === 2) {
@@ -283,7 +293,6 @@ export function createRenderer(options = browserOptions) {
         patchProps(el, 'class', oldProps.class, newProps.class)
       } else if (n2.patchFlags === 3) {
         // 更新 style
-        console.log('TODO')
         patchProps(el, 'style')
       }
     } else {
@@ -304,15 +313,15 @@ export function createRenderer(options = browserOptions) {
     // 第二步：更新 children
     if (n2.dynamicChildren) {
       // 只更新动态节点
-      patchBlockChildren(n1, n2)
+      patchBlockChildren(n1, n2, anchor)
     } else {
-      patchChildren(n1, n2, el)
+      patchChildren(n1, n2, el, anchor)
     }
   }
 
-  function patchBlockChildren(n1, n2) {
+  function patchBlockChildren(n1, n2, anchor) {
     for (let i = 0; i < n2.dynamicChildren.length; i++) {
-      patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i])
+      patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i], anchor)
     }
   }
 
@@ -322,7 +331,7 @@ export function createRenderer(options = browserOptions) {
    * @param {*} n2 新节点
    * @param {*} container DOM
    */
-  function patchChildren(n1, n2, container) {
+  function patchChildren(n1, n2, container, anchor) {
     // 新 children 类型为 String
     if (isString(n2.children)) {
       if (isArray(n1.children)) {
@@ -346,9 +355,9 @@ export function createRenderer(options = browserOptions) {
           n2.children[0].key !== null
         ) {
           // 快速 Diff 算法 ⬇️
-          patchKeyedChildren(n1, n2, container)
+          patchKeyedChildren(n1, n2, container, anchor)
         } else {
-          patchUnKeyedChildren(n1, n2, container)
+          patchUnKeyedChildren(n1, n2, container, anchor)
         }
       } else {
         // 旧节点要么是文本要么为空
@@ -373,7 +382,7 @@ export function createRenderer(options = browserOptions) {
   /**
    * 快速 Diff 算法
    */
-  function patchKeyedChildren(n1, n2, container) {
+  function patchKeyedChildren(n1, n2, container, anchor) {
     const oldChildren = n1.children
     const newChildren = n2.children
 
@@ -383,7 +392,7 @@ export function createRenderer(options = browserOptions) {
     let newVNode = newChildren[j]
     // 1.从前往后 处理前置元素
     while (oldVNode.key === newVNode.key) {
-      patch(oldVNode, newVNode, container)
+      patch(oldVNode, newVNode, container, anchor)
       j++
       oldVNode = oldChildren[j]
       newVNode = newChildren[j]
@@ -395,7 +404,7 @@ export function createRenderer(options = browserOptions) {
     oldVNode = oldChildren[oldEnd]
     newVNode = newChildren[newEnd]
     while (oldVNode.key === newVNode.key) {
-      patch(oldVNode, newVNode, container)
+      patch(oldVNode, newVNode, container, anchor)
       oldEnd--
       newEnd--
       oldVNode = oldChildren[oldEnd]
@@ -499,23 +508,25 @@ export function createRenderer(options = browserOptions) {
     }
   }
 
-  function patchUnKeyedChildren(n1, n2, container) {
+  function patchUnKeyedChildren(n1, n2, container, anchor) {
+    const oldChildren = n1.children
+    const newChildren = n2.children
     const oldLength = n1.children.length
     const newLength = n2.children.length
     // 公共长度
     const commonLength = Math.min(oldLength, newLength)
     for (let i = 0; i < commonLength; i++) {
       // 更新公共长度
-      patch(n1[i], n2[i], container)
+      patch(oldChildren[i], newChildren[i], container, anchor)
     }
     if (newLength > oldLength) {
       // 挂载新的
-      n2.children.slice(commonLength).forEach(c => {
-        patch(null, c, container)
+      newChildren.slice(commonLength).forEach(c => {
+        patch(null, c, container, anchor)
       })
     } else if (newLength < oldLength) {
       // 卸载旧的
-      n1.children.slice(commonLength).forEach(c => {
+      oldChildren.slice(commonLength).forEach(c => {
         unmount(c)
       })
     }
