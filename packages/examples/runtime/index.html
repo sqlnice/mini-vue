@@ -114,24 +114,12 @@
       // })
 
       // Fragment
-      // effect(() => {
-      //   renderer.render(
-      //     {
-      //       type: 'ul',
-      //       children: [
-      //         {
-      //           type: Shape.Fragment,
-      //           children: [
-      //             { type: 'li', children: '1' },
-      //             { type: 'li', children: '2' },
-      //             { type: 'li', children: '3' },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //     document.getElementById('app')
-      //   )
-      // })
+      effect(() => {
+        renderer.render(
+          h(Shape.Text, null, 'hello'),
+          document.getElementById('app')
+        )
+      })
       // setTimeout(() => {
       //   effect(() => {
       //     renderer.render(
