@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
+    "dev": "node scripts/dev.js",
+    "build": "node scripts/build.js",
     "lint": "eslint packages --ext .js --cache --fix",
     "prepare": "husky install"
   },
@@ -27,6 +27,8 @@
   "devDependencies": {
     "@babel/core": "^7.18.13",
     "@babel/preset-env": "^7.18.10",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^14.1.0",
     "babel-jest": "^29.0.2",
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
