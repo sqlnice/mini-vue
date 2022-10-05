@@ -1,5 +1,5 @@
-import { createRenderer } from '../render'
-import { h, Shape } from '../vnode'
+import { createRenderer } from '../src/render'
+import { h, Shape } from '../src/vnode'
 const { render } = createRenderer()
 
 function getTag(el) {

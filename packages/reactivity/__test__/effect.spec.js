@@ -1,5 +1,5 @@
-import { effect } from '../effect'
-import { reactive } from '../reactive'
+import { effect } from '../src/effect'
+import { reactive } from '../src/reactive'
 
 describe('effect', () => {
   test('基本使用', () => {

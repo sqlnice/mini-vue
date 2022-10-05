@@ -1,7 +1,7 @@
-import { computed } from '../computed'
-import { effect } from '../effect'
-import { reactive } from '../reactive'
-import { ref } from '../ref'
+import { computed } from '../src/computed'
+import { effect } from '../src/effect'
+import { reactive } from '../src/reactive'
+import { ref } from '../src/ref'
 
 describe('computed', () => {
   test('基础使用', () => {

@@ -1,10 +1,17 @@
 {
   "name": "mini-vue",
   "version": "1.0.0",
-  "description": "mini-vue",
+  "description": "mini-vue全局模块",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "module": "dist/vue.esm-bundler.js",
+  "unpkg": "dist/vue.global.js",
+  "buildOptions": {
+    "name": "MiniVue",
+    "formats": [
+      "cjs",
+      "esm-bundler",
+      "global"
+    ]
   },
   "keywords": [],
   "author": "sqlnice",

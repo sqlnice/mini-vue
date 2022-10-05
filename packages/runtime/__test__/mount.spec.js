@@ -1,6 +1,6 @@
-import { createApp } from '../createApp'
-import { createRenderer } from '../render'
-import { h, Shape } from '../vnode'
+import { createApp } from '../src/createApp'
+import { createRenderer } from '../src/render'
+import { h, Shape } from '../src/vnode'
 
 function getTag(el) {
   return el.tagName.toLowerCase()

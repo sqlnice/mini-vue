@@ -1,5 +1,5 @@
-import { NodeTypes } from '../ast'
-import { traverseNode as generate } from '../codegen'
+import { NodeTypes } from '../src/ast'
+import { traverseNode as generate } from '../src/codegen'
 
 const createAst = node => ({
   type: NodeTypes.ROOT,

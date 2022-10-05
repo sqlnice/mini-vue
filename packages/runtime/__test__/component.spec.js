@@ -1,7 +1,7 @@
-import { reactive, ref, computed } from '../../reactivity'
-import { createRenderer } from '../render'
-import { h, Shape } from '../vnode'
-import { nextTick } from '../scheduler'
+import { reactive, ref, computed } from '../../reactivity/src/index'
+import { createRenderer } from '../src/render'
+import { h, Shape } from '../src/vnode'
+import { nextTick } from '../src/scheduler'
 let root
 let render
 beforeEach(() => {

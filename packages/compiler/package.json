@@ -3,11 +3,21 @@
   "version": "1.0.0",
   "description": "@mini-vue/compiler",
   "main": "index.js",
+  "module": "dist/compiler.esm-bundler.js",
+  "unpkg": "dist/compiler.global.js",
+  "buildOptions": {
+    "name": "compiler",
+    "formats": [
+      "cjs",
+      "esm-bundler",
+      "global"
+    ]
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
-  "author": "",
+  "author": "sqlnice",
   "license": "ISC",
   "dependencies": {
     "@mini-vue/shared": "workspace:^1.0.0"

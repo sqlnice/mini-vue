@@ -1,5 +1,5 @@
-import { parse } from '../parse'
-import { NodeTypes, ElementTypes } from '../ast'
+import { parse } from '../src/parse'
+import { NodeTypes, ElementTypes } from '../src/ast'
 
 describe('compiler: parse', () => {
   describe('Text', () => {

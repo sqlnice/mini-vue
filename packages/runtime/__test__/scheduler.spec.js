@@ -1,7 +1,7 @@
-import { createRenderer } from '../render'
-import { h, Shape } from '../vnode'
-import { ref } from '../../reactivity'
-import { nextTick } from '../scheduler'
+import { createRenderer } from '../src/render'
+import { h, Shape } from '../src/vnode'
+import { ref } from '../../reactivity/src/index'
+import { nextTick } from '../src/scheduler'
 const { render } = createRenderer()
 
 let root

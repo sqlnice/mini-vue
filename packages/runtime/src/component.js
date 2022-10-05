@@ -6,7 +6,7 @@ import {
 } from '@mini-vue/reactivity'
 import { queueJob } from './scheduler'
 import { LifecycleHooks } from './lifeCycle'
-import { isFunction } from '@mini-vue/shared'
+import { isFunction, isObject, isArray } from '@mini-vue/shared'
 import { compile } from '@mini-vue/compiler'
 import { normalizeVNode } from './vnode'
 // 对于不同组件在 setup 实例化过程中注册各自的生命周期防止混乱的解决方式就是定义一个 currentInstance 变量
@@ -308,7 +308,11 @@ function resolveProps(options = [], propsData) {
   const attrs = {}
   // 遍历为组件传递的 props 数据
   for (const key in propsData) {
-    if (key in options || key.startsWith('on') || options.includes(key)) {
+    if (
+      key.startsWith('on') ||
+      (isObject(options) && key in options) ||
+      (isArray(options) && options.includes(key))
+    ) {
       // 如果在组件自身有定义 或者 以 on 开头的事件，则为合法
       props[key] = propsData[key]
     } else {

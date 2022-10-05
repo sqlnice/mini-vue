@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "description": "@mini-vue/shared",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "module": "dist/shared.esm-bundler.js",
+  "unpkg": "dist/shared.global.js",
+  "buildOptions": {
+    "name": "shared",
+    "formats": [
+      "cjs",
+      "esm-bundler",
+      "global"
+    ]
   },
   "keywords": [],
-  "author": "",
+  "author": "sqlnice",
   "license": "ISC"
 }

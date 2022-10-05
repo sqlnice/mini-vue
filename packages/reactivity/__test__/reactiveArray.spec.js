@@ -1,5 +1,5 @@
-import { isReactive, reactive } from '../reactive'
-import { effect } from '../effect'
+import { isReactive, reactive } from '../src/reactive'
+import { effect } from '../src/effect'
 describe('reactive array', () => {
   test('响应式数组', () => {
     const original = [{ foo: 1 }]

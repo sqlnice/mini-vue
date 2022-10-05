@@ -3,11 +3,21 @@
   "version": "1.0.0",
   "description": "@mini-vue/runtime",
   "main": "index.js",
+  "module": "dist/runtime.esm-bundler.js",
+  "unpkg": "dist/runtime.global.js",
+  "buildOptions": {
+    "name": "runtime",
+    "formats": [
+      "cjs",
+      "esm-bundler",
+      "global"
+    ]
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
-  "author": "",
+  "author": "sqlnice",
   "license": "ISC",
   "dependencies": {
     "@mini-vue/compiler": "workspace:^1.0.0",

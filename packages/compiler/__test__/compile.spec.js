@@ -1,5 +1,5 @@
-import { parse } from '../parse'
-import { traverseNode } from '../codegen'
+import { parse } from '../src/parse'
+import { traverseNode } from '../src/codegen'
 const compile = template => {
   const ast = parse(template)
   return traverseNode(ast)

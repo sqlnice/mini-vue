@@ -158,7 +158,7 @@ export function createRenderer(options = browserOptions) {
     // 新旧节点类型不同 则直接卸载旧节点
     if (n1 && n1.type !== n2.type) {
       // n1被卸载后，n2将会创建，因此anchor至关重要。需要将它设置为n1的下一个兄弟节点
-      anchor = (n1.anchor || n1.el).nextSibling
+      anchor = (n1.anchor || n1.el)?.nextSibling
       unmount(n1)
       n1 = null
     }

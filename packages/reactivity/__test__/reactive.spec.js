@@ -1,11 +1,11 @@
-import { effect } from '../effect'
+import { effect } from '../src/effect'
 import {
   reactive,
   isReactive,
   shallowReactive,
   readonly,
   shallowReadonly
-} from '../reactive'
+} from '../src/reactive'
 describe('reactive', () => {
   test('isReactive', () => {
     const original = { count: 0 }

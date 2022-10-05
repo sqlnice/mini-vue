@@ -1,6 +1,6 @@
-import { effect } from '../effect'
-import { reactive } from '../reactive'
-import { ref, isRef, toRef, toRefs } from '../ref'
+import { effect } from '../src/effect'
+import { reactive } from '../src/reactive'
+import { ref, isRef, toRef, toRefs } from '../src/ref'
 
 describe('ref', () => {
   test('isRef', () => {

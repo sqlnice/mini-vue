@@ -3,11 +3,21 @@
   "version": "1.0.0",
   "description": "@mini-vue/reactivity",
   "main": "index.js",
+  "module": "dist/reactivity.esm-bundler.js",
+  "unpkg": "dist/reactivity.global.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
+  },
+  "buildOptions": {
+    "name": "reactivity",
+    "formats": [
+      "cjs",
+      "esm-bundler",
+      "global"
+    ]
   },
   "keywords": [],
-  "author": "",
+  "author": "sqlnice",
   "license": "ISC",
   "dependencies": {
     "@mini-vue/shared": "workspace:^1.0.0"
