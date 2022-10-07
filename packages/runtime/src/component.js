@@ -197,7 +197,6 @@ export function mountComponent(vnode, container, anchor, patch, options) {
       template = el ? el.innerHTML : ''
     }
     instance.render = new Function('_ctx', compile(template))
-    console.log('渲染render：', instance.render)
   }
   // created
   created && created.call(renderContext)
