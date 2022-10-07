@@ -2,19 +2,31 @@
 
 ⏳ 逐步实现 `Vue 3` 大部分功能
 
+# 使用
+
+> pnpm install
+
+打包单个模块,默认打包 reactivity , 其他例如 `pnpm run dev -m compiler`
+
+> pnpm run dev -m [packageName]
+
+打包整个项目
+
+> pnpm run build
+
 # 目录结构
 
 - `scripts`
 
-  - `rollup.config.dev.js` 本地开发
-  - `rollup.config.port.js` 打包
+  - `dev.js` 单个模块打包/热更新开发
+  - `build.js` 打包整个项目
 
-- `src`
-  - `examples` 本地开发默认打开此页面
+- ` packages`
+  - `compiler` 编译器
   - `reactivity` 响应式系统
-- `vue3`
-
-  `Vue 3` 源码
+  - `runtime` 运行时
+  - `shared` 工具函数
+  - `vue` 最终生成的框架代码
 
 # 响应系统
 
