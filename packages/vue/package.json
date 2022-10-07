@@ -1,7 +1,7 @@
 {
   "name": "mini-vue",
   "version": "1.0.0",
-  "description": "mini-vue全局模块",
+  "description": "逐步实现 `Vue 3` 大部分功能",
   "main": "index.js",
   "module": "dist/vue.esm-bundler.js",
   "unpkg": "dist/vue.global.js",
@@ -13,7 +13,14 @@
       "global"
     ]
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqlnice/mini-vue.git"
+  },
+  "homepage": "https://github.com/sqlnice/mini-vue",
+  "keywords": [
+    "mini-vue"
+  ],
   "author": "sqlnice",
   "license": "ISC",
   "dependencies": {

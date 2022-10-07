@@ -16,6 +16,12 @@
       "global"
     ]
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqlnice/mini-vue.git",
+    "directory": "packages/reactivity"
+  },
+  "homepage": "https://github.com/sqlnice/mini-vue",
   "keywords": [],
   "author": "sqlnice",
   "license": "ISC",

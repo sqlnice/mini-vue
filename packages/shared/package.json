@@ -13,6 +13,12 @@
       "global"
     ]
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqlnice/mini-vue.git",
+    "directory": "packages/shared"
+  },
+  "homepage": "https://github.com/sqlnice/mini-vue",
   "keywords": [],
   "author": "sqlnice",
   "license": "ISC"
