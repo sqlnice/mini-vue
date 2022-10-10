@@ -11,10 +11,7 @@ import {
   isRef,
   proxyRefs,
   computed,
-  watch
-} from '@mini-vue/reactivity'
-
-import {
+  watch,
   createRenderer,
   h,
   Shape,
@@ -51,6 +48,7 @@ export default {
   isRef,
   proxyRefs,
   computed,
+  watch,
   queueJob,
   nextTick,
   onBeforeMount,
@@ -60,7 +58,6 @@ export default {
   onBeforeUnmount,
   onUnmounted,
   onServerPrefetch,
-  watch,
   createRenderer,
   h,
   Shape,

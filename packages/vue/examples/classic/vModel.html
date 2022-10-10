@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="../../dist/vue.global.js"></script>
+  </head>
+
+  <body>
+    <div id="app">
+      <div>{{this.model.text}}</div>
+      <input type="text" v-model="this.model.text" />
+      <hr />
+      <div>{{this.model.radio}}</div>
+      <label>
+        <input
+          type="radio"
+          name="radio"
+          value="first"
+          v-model="this.model.radio"
+        />first
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="radio"
+          value="second"
+          v-model="this.model.radio"
+        />second
+      </label>
+      <hr />
+      <div>{{this.model.checkbox.toString()}}</div>
+      <label>
+        <input
+          type="checkbox"
+          name="checkbox"
+          value="one"
+          v-model="this.model.checkbox"
+        />one
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          name="checkbox"
+          value="two"
+          v-model="this.model.checkbox"
+        />two
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          name="checkbox"
+          value="three"
+          v-model="this.model.checkbox"
+        />three
+      </label>
+      <hr />
+      <div>{{this.model.singleCheckbox.toString()}}</div>
+      <label>
+        <input
+          type="checkbox"
+          v-model="this.model.singleCheckbox"
+        />singleCheckbox
+      </label>
+      <hr />
+    </div>
+    <script>
+      const { createApp, ref, reactive } = MiniVue
+      const model = reactive({
+        text: 'text',
+        radio: 'second',
+        checkbox: ['one', 'three'],
+        singleCheckbox: true
+      })
+      createApp({
+        setup() {
+          return {
+            model
+          }
+        }
+      }).mount('#app')
+    </script>
+  </body>
+</html>
