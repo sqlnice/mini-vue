@@ -2,7 +2,7 @@
 
 <div id="demo">
   <h1>Latest Vue.js Commits</h1>
-  <template v-for="branch in this.branches">
+  <p v-for="branch in this.branches">
     <input
       type="radio"
       :id="branch"
@@ -11,23 +11,24 @@
       v-model="this.currentBranch.value"
     />
     <label :for="branch">{{ branch }}</label>
-  </template>
+  </p>
   <p>vuejs/core@{{ this.currentBranch.value }}</p>
-  <ul>
-    <li v-for="({ html_url, sha, author, commit }) in this.commits">
-      <a :href="html_url" target="_blank" class="commit"
-        >{{ sha.slice(0, 7) }}</a
-      >
-      - <span class="message">{{ truncate(commit.message) }}</span><br />
+  <p>
+    <li v-for="item in this.commits.value">
+      <a :href="item.html_url" target="_blank" class="commit"
+        >{{ item.sha }}
+      </a>
+      -
+      <span class="message">{{ truncate(item.commit.message) }}</span><br />
       by
-      <span class="author"
-        ><a :href="author.html_url" target="_blank"
-          >{{ commit.author.name }}</a
-        ></span
-      >
-      at <span class="date">{{ formatDate(commit.author.date) }}</span>
+      <span class="author">
+        <a :href="item.author.html_url" target="_blank">
+          {{ item.commit.author.name }}
+        </a>
+      </span>
+      at <span class="date">{{ formatDate(item.commit.author.date) }}</span>
     </li>
-  </ul>
+  </p>
 </div>
 
 <script>
@@ -49,7 +50,6 @@
         fetch(`${API_URL}${currentBranch.value}`)
           .then(res => res.json())
           .then(data => {
-            console.log(data)
             commits.value = data
           })
       })

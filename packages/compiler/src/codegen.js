@@ -134,11 +134,12 @@ function createElementVNode(node) {
   }
 
   let childrenStr = traverseChildren(node)
-  // 旧代码
-  // if (children[0].type === NodeTypes.ELEMENT) {
-  //   childrenStr = `[${childrenStr}]`
-  // }
-  if (children.length > 1) {
+  // TODO 这里有问题
+  // 比如 <p>1</p><span>234{{ this.name.value }}</span> 会渲染错误
+  if (
+    [NodeTypes.ELEMENT, NodeTypes.TEXT].includes(children[0].type) &&
+    children.length > 1
+  ) {
     childrenStr = `[${childrenStr}]`
   }
   return `h(${tag}, ${propStr}, ${childrenStr})`
