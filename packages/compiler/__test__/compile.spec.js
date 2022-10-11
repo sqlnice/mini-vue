@@ -73,7 +73,7 @@ describe('compiler: integration tests', () => {
 
     test('props + children', () => {
       const code = compile(`<div id="foo"><span/></div>`)
-      expect(code).toBe('h("div", { id: "foo" }, [h("span")])')
+      expect(code).toBe('h("div", { id: "foo" }, h("span"))')
     })
   })
 
@@ -150,7 +150,7 @@ describe('compiler: integration tests', () => {
                         : h("span")
              */
       expect(code).toBe(
-        'ok ? h("div", null, "ok") : foo ? h("div", null, [a ? h("h1") : b ? h("h2") : h(Shape.Text, null, ""), c ? h("h3") : d ? h("h4") : e ? h("h5") : h("h6", null, [h("div", null, "hello world")])]) : h("span")'
+        'ok ? h("div", null, "ok") : foo ? h("div", null, [a ? h("h1") : b ? h("h2") : h(Shape.Text, null, ""), c ? h("h3") : d ? h("h4") : e ? h("h5") : h("h6", null, h("div", null, "hello world"))]) : h("span")'
       )
     })
   })
@@ -210,7 +210,7 @@ describe('compiler: integration tests', () => {
         '<ul v-for="item in items"><li v-for="child in item.list">{{child.text}}</li></ul>'
       )
       expect(code).toBe(
-        'h(Shape.Fragment, null, renderList(items, item => h("ul", null, [h(Shape.Fragment, null, renderList(item.list, child => h("li", null, child.text)))])))'
+        'h(Shape.Fragment, null, renderList(items, item => h("ul", null, h(Shape.Fragment, null, renderList(item.list, child => h("li", null, child.text))))))'
       )
     })
 
