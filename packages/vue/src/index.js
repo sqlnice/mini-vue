@@ -31,6 +31,7 @@ import {
   createBlock,
   openBlock,
   createApp,
+  resolveComponent,
   renderList,
   withModel
 } from '@mini-vue/runtime'
@@ -69,6 +70,7 @@ export default {
   createBlock,
   openBlock,
   createApp,
+  resolveComponent,
   renderList,
   withModel
 }
