@@ -132,7 +132,11 @@ function createElementVNode(node) {
   }
 
   let childrenStr = traverseChildren(node)
-  if (children[0].type === NodeTypes.ELEMENT) {
+  // 旧代码
+  // if (children[0].type === NodeTypes.ELEMENT) {
+  //   childrenStr = `[${childrenStr}]`
+  // }
+  if (children.length > 1) {
     childrenStr = `[${childrenStr}]`
   }
   return `h(${tag}, ${propStr}, ${childrenStr})`
