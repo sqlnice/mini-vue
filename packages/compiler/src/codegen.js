@@ -25,6 +25,8 @@ export function traverseNode(node, parent) {
       return createTextVNode(node)
     case NodeTypes.INTERPOLATION:
       return createTextVNode(node.content)
+    case NodeTypes.COMMENT:
+      return createCommentVNode(node)
   }
 }
 
@@ -185,6 +187,11 @@ function pluck(directives, name, remove = true) {
 function createTextVNode(node) {
   const child = createText(node)
   return `h(Shape.Text, null, ${child})`
+}
+
+function createCommentVNode(node) {
+  const child = createText(node)
+  return `h(Shape.Comment, null, ${child})`
 }
 
 function createText({ content = '', isStatic = true } = {}) {
